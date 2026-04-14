@@ -194,8 +194,7 @@ html, body {
 
 /* ==================== 游戏页 ==================== */
 #page-game {
-  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / auto 100% no-repeat;
-  background-color: var(--dark-bg);
+  background: linear-gradient(180deg, #8B6242 0%, #A0724E 15%, #C4956A 30%, #8B6242 50%, #6B4226 100%);
 }
 .game-inner {
   width: 100%;
@@ -204,9 +203,6 @@ html, body {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-}
-@media (min-width: 481px) {
-  .game-inner { max-width: none; }
 }
 
 /* ---- 顶部栏 ---- */
@@ -370,7 +366,7 @@ html, body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 12vh 1% 2px;
+  padding: 10px 4px 2px;
   min-height: 0;
 }
 .game-area::-webkit-scrollbar { width: 2px; }
@@ -403,8 +399,8 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 6% 3%;
-  aspect-ratio: 2.2 / 1;
+  padding: 10px 6px 12px;
+  min-height: 70px;
   position: relative;
   transition: box-shadow 0.2s;
   /* 让烤盘图覆盖背景图中的烤盘 */
@@ -905,6 +901,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=36"></script>
+<script src="game.js?v=37"></script>
 </body>
 </html>
