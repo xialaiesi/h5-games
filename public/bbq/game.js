@@ -601,49 +601,46 @@ function tryMoveTo(fromGrillId, fromSlotIdx, toGrillId) {
 // ==================== 统一棋盘稳定化 ====================
 
 /**
- * 统一处理循环：扫描所有烤盘，补充空位→检测消除→检查订单
- * 循环执行直到棋盘稳定（无新消除、无新订单完成）
+ * 统一处理循环：检测消除→补充被消除的烤盘→检查订单
+ * 循环执行直到棋盘稳定
+ * 注意：只有消除后才补充，拖拽产生的空位不补充
  */
 function resolveBoard() {
   if (G.over || G.won) return;
 
-  // 1. 补充所有烤盘的空位（从碟子取食材）
-  refillAllGrills();
-  renderAll();
-  renderProgress();
-
-  // 2. 查找可消除的烤盘（3个相同）
+  // 1. 查找可消除的烤盘（3个相同）
   const elimGrill = findEliminableGrill();
   if (elimGrill !== null) {
     doEliminate(elimGrill, () => {
-      // 消除完后继续循环（补充+再检测）
+      // 消除后补充该烤盘，然后继续循环
+      refillGrill(elimGrill);
+      renderAll();
+      renderProgress();
       resolveBoard();
     });
     return;
   }
 
-  // 3. 检查订单匹配
+  // 2. 检查订单匹配
   const orderDone = tryFulfillOrder();
   if (orderDone) {
-    // 订单取走食材后继续循环（补充+再检测）
     setTimeout(() => resolveBoard(), 300);
     return;
   }
 
-  // 4. 棋盘稳定，检查通关/死局
+  // 3. 棋盘稳定，检查通关/死局
   if (checkWin()) { triggerWin(); return; }
   checkDeadlock();
 }
 
-/** 补充所有烤盘：碟子有食材且烤盘有空位 → 自动填入 */
-function refillAllGrills() {
-  G.data.grills.forEach(grill => {
-    for (let i = 0; i < PAN_CAPACITY; i++) {
-      if (grill.pan[i] === null && grill.dish.length > 0) {
-        grill.pan[i] = grill.dish.pop();
-      }
+/** 只补充指定烤盘（消除后调用） */
+function refillGrill(grillId) {
+  const grill = G.data.grills[grillId];
+  for (let i = 0; i < PAN_CAPACITY; i++) {
+    if (grill.pan[i] === null && grill.dish.length > 0) {
+      grill.pan[i] = grill.dish.pop();
     }
-  });
+  }
 }
 
 /** 查找第一个可消除的烤盘（3个相同食材）*/
@@ -713,6 +710,8 @@ function tryFulfillOrder() {
           const si = grill.pan.findIndex(it => it && it.typeId === need);
           if (si !== -1) { grill.pan[si] = null; G.cleared++; }
         }
+        // 订单取走食材后，补充该烤盘
+        refillGrill(grill.id);
         // 完成订单
         o.items.forEach(it => { it.done = true; });
         clearInterval(o.handle);
@@ -922,8 +921,6 @@ const Game = {
 
     // 延迟一帧后启动
     requestAnimationFrame(() => {
-      // 初始补充：确保碟子食材填入烤盘空位
-      resolveBoard();
       startTimer();
       startOrderSystem();
     });
