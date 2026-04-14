@@ -244,6 +244,8 @@ function spawnOrder() {
   }, 1000);
   G.orders.push(order);
   renderOrders();
+  // 新订单生成后立即检查是否已有匹配的烤盘
+  setTimeout(() => resolveBoard(), 100);
 }
 
 function addTimeToOrders(sec) {
@@ -251,27 +253,6 @@ function addTimeToOrders(sec) {
   renderOrders();
 }
 
-function checkOrderProgress(typeId, spicy) {
-  G.orders.forEach(o => {
-    if (o.spicy !== spicy) return;
-    const item = o.items.find(it => it.typeId === typeId && !it.done);
-    if (!item) return;
-    item.done = true;
-    if (o.items.every(it => it.done)) {
-      clearInterval(o.handle);
-      G.score += 500;
-      o.completed = true;
-      renderOrders();
-      showOrderDoneTip();
-      setTimeout(() => {
-        G.orders = G.orders.filter(oo => oo.id !== o.id);
-        renderOrders();
-      }, 1200);
-    } else {
-      renderOrders();
-    }
-  });
-}
 
 function renderOrders() {
   const area = document.getElementById('orders-area');
@@ -613,101 +594,144 @@ function tryMoveTo(fromGrillId, fromSlotIdx, toGrillId) {
 
   renderAll();
 
-  // 检测消除（先检测目标，再检测来源——来源可能因补充而产生新的消除）
-  setTimeout(() => {
-    checkAndEliminate(toGrillId, () => {
-      checkAndEliminate(fromGrillId, () => {
-        checkDeadlock();
-      });
-    });
-  }, 60);
+  // 拖拽后：统一处理消除→补充→订单→连锁
+  setTimeout(() => resolveBoard(), 60);
 }
 
-/**
- * 检测烤盘是否有3个相同食材，有则消除并补充
- */
-function checkAndEliminate(grillId, cb) {
-  const grill = G.data.grills[grillId];
-  const items = grill.pan.filter(s => s !== null);
+// ==================== 统一棋盘稳定化 ====================
 
-  if (items.length === PAN_CAPACITY) {
-    const typeId = items[0].typeId;
-    if (items.every(it => it.typeId === typeId)) {
-      // 消除！
-      eliminateGrill(grillId, typeId, grill.spicy, cb);
-      return;
+/**
+ * 统一处理循环：扫描所有烤盘，补充空位→检测消除→检查订单
+ * 循环执行直到棋盘稳定（无新消除、无新订单完成）
+ */
+function resolveBoard() {
+  if (G.over || G.won) return;
+
+  // 1. 补充所有烤盘的空位（从碟子取食材）
+  refillAllGrills();
+  renderAll();
+  renderProgress();
+
+  // 2. 查找可消除的烤盘（3个相同）
+  const elimGrill = findEliminableGrill();
+  if (elimGrill !== null) {
+    doEliminate(elimGrill, () => {
+      // 消除完后继续循环（补充+再检测）
+      resolveBoard();
+    });
+    return;
+  }
+
+  // 3. 检查订单匹配
+  const orderDone = tryFulfillOrder();
+  if (orderDone) {
+    // 订单取走食材后继续循环（补充+再检测）
+    setTimeout(() => resolveBoard(), 300);
+    return;
+  }
+
+  // 4. 棋盘稳定，检查通关/死局
+  if (checkWin()) { triggerWin(); return; }
+  checkDeadlock();
+}
+
+/** 补充所有烤盘：碟子有食材且烤盘有空位 → 自动填入 */
+function refillAllGrills() {
+  G.data.grills.forEach(grill => {
+    for (let i = 0; i < PAN_CAPACITY; i++) {
+      if (grill.pan[i] === null && grill.dish.length > 0) {
+        grill.pan[i] = grill.dish.pop();
+      }
+    }
+  });
+}
+
+/** 查找第一个可消除的烤盘（3个相同食材）*/
+function findEliminableGrill() {
+  for (const grill of G.data.grills) {
+    const items = grill.pan.filter(Boolean);
+    if (items.length === PAN_CAPACITY && items.every(it => it.typeId === items[0].typeId)) {
+      return grill.id;
     }
   }
-  if (cb) cb();
+  return null;
 }
 
-/**
- * 执行消除动画 + 逻辑
- */
-function eliminateGrill(grillId, typeId, spicy, cb) {
+/** 执行消除动画 */
+function doEliminate(grillId, cb) {
   G.busy = true;
-
-  // 高亮烤盘
   const panEl = document.querySelector(`.grill-pan[data-grill-id="${grillId}"]`);
   if (panEl) panEl.classList.add('glow-match');
 
-  // 槽位弹出动画
   const slotEls = document.querySelectorAll(`.pan-slot[data-grill-id="${grillId}"]`);
-  slotEls.forEach(el => {
-    if (el.textContent.trim()) el.classList.add('pop');
-  });
+  slotEls.forEach(el => { if (el.textContent.trim()) el.classList.add('pop'); });
 
   setTimeout(() => {
     if (panEl) panEl.classList.remove('glow-match');
-
     const grill = G.data.grills[grillId];
-    grill.pan   = [null, null, null];
-    G.cleared  += PAN_CAPACITY;
-    G.score    += 100 * (1 + G.combo);
+    grill.pan = [null, null, null];
+    G.cleared += PAN_CAPACITY;
+    G.score   += 100 * (1 + G.combo);
     G.combo++;
-
-    // 检查订单
-    checkOrderProgress(typeId, spicy);
-
-    // 显示连击
     if (G.combo >= 2) showComboTip(G.combo, panEl);
-
-    // 从碟子补充食材
-    refillFromDish(grillId);
-
     G.busy = false;
-
     renderAll();
     renderProgress();
-
-    // 检查通关
-    if (checkWin()) {
-      triggerWin();
-      if (cb) cb();
-      return;
-    }
-
     if (cb) cb();
   }, 420);
 }
 
 /**
- * 从碟子补充食材到烤盘（最多到3个）
+ * 尝试完成一个订单：扫描所有烤盘，看是否有烤盘包含订单所需食材
+ * 如果匹配 → 取走食材，标记订单完成
+ * 返回 true 表示有订单被完成
  */
-function refillFromDish(grillId) {
-  const grill = G.data.grills[grillId];
-  for (let i = 0; i < PAN_CAPACITY; i++) {
-    if (grill.pan[i] === null && grill.dish.length > 0) {
-      grill.pan[i] = grill.dish.pop();
+function tryFulfillOrder() {
+  for (let oi = 0; oi < G.orders.length; oi++) {
+    const o = G.orders[oi];
+    if (o.completed) continue;
+    const needed = o.items.filter(it => !it.done).map(it => it.typeId);
+    if (needed.length === 0) continue;
+
+    for (const grill of G.data.grills) {
+      if (o.spicy !== grill.spicy) continue;
+      const panTypes = grill.pan.filter(Boolean).map(it => it.typeId);
+      if (panTypes.length < needed.length) continue;
+
+      // 检查烤盘是否包含订单所需的所有食材
+      const available = [...panTypes];
+      let allFound = true;
+      for (const need of needed) {
+        const idx = available.indexOf(need);
+        if (idx === -1) { allFound = false; break; }
+        available.splice(idx, 1);
+      }
+
+      if (allFound) {
+        // 从烤盘取走订单食材
+        for (const need of needed) {
+          const si = grill.pan.findIndex(it => it && it.typeId === need);
+          if (si !== -1) { grill.pan[si] = null; G.cleared++; }
+        }
+        // 完成订单
+        o.items.forEach(it => { it.done = true; });
+        clearInterval(o.handle);
+        G.score += 500;
+        o.completed = true;
+        renderAll();
+        renderProgress();
+        renderOrders();
+        showOrderDoneTip();
+        const orderId = o.id;
+        setTimeout(() => {
+          G.orders = G.orders.filter(oo => oo.id !== orderId);
+          renderOrders();
+        }, 1200);
+        return true;
+      }
     }
   }
-}
-
-/**
- * 补充后再次检测消除（连锁）
- */
-function checkAfterRefill(grillId, cb) {
-  checkAndEliminate(grillId, cb);
+  return false;
 }
 
 /**
@@ -896,8 +920,10 @@ const Game = {
     renderOrders();
     updateTimerDisplay();
 
-    // 延迟一帧后启动倒计时，让渲染先完成
+    // 延迟一帧后启动
     requestAnimationFrame(() => {
+      // 初始补充：确保碟子食材填入烤盘空位
+      resolveBoard();
       startTimer();
       startOrderSystem();
     });
