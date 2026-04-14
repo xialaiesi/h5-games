@@ -95,12 +95,9 @@ function generateLevel(levelNum) {
   const chosen = shuffle(pool).slice(0, numTypes);
 
   // ---- 计算总食材数（必须是3的整倍数） ----
-  // 留 emptyGrills 个烤盘初始为空（给玩家拖拽空间）
-  const emptyGrills = Math.max(2, Math.min(3, Math.floor(GRILL_COUNT * 0.25)));
-  const filledGrills = GRILL_COUNT - emptyGrills; // 初始有食材的烤盘数
-
-  // 初始烤盘食材 + 碟子食材
-  const initialPanCount = filledGrills * PAN_CAPACITY;
+  // 每个烤盘初始放2个食材，留1个空位供拖拽
+  const itemsPerPan    = 2;
+  const initialPanCount = GRILL_COUNT * itemsPerPan; // 24
   const totalDishCount  = GRILL_COUNT * cfg.itemsPerDish;
   const rawTotal = initialPanCount + totalDishCount;
 
@@ -118,7 +115,7 @@ function generateLevel(levelNum) {
 
   const bag = shuffle(allItems);
 
-  // 前 filledGrills*3 个放到有食材的烤盘，剩余全部进碟子
+  // 前 initialPanCount 个放到烤盘（每盘2个），剩余进碟子
   const panItems  = bag.slice(0, initialPanCount);
   const dishItems = bag.slice(initialPanCount);
 
@@ -134,25 +131,17 @@ function generateLevel(levelNum) {
     shuffle(Array.from({ length: GRILL_COUNT }, (_, i) => i)).slice(0, spicyCount)
   );
 
-  // 随机选择哪些烤盘初始为空
-  const grillOrder = shuffle(Array.from({ length: GRILL_COUNT }, (_, i) => i));
-  const emptySet   = new Set(grillOrder.slice(0, emptyGrills));
-
-  // 构造烤盘
-  let panCursor = 0;
+  // 构造烤盘：每盘放2个食材 + 1个空位
   const grills = Array.from({ length: GRILL_COUNT }, (_, i) => {
+    const a = panItems[i * itemsPerPan];
+    const b = panItems[i * itemsPerPan + 1];
+    // 随机决定空位位置（左、中、右）
+    const emptyPos = Math.floor(Math.random() * 3);
     let pan;
-    if (emptySet.has(i)) {
-      // 空烤盘（留给玩家拖拽用）
-      pan = [null, null, null];
-    } else {
-      // 填满3个食材
-      pan = [
-        panItems[panCursor++],
-        panItems[panCursor++],
-        panItems[panCursor++],
-      ];
-    }
+    if (emptyPos === 0)      pan = [null, a, b];
+    else if (emptyPos === 1) pan = [a, null, b];
+    else                     pan = [a, b, null];
+
     return {
       id:    i,
       spicy: spicyIndices.has(i),
