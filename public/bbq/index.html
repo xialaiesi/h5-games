@@ -171,7 +171,7 @@ html, body {
 
 /* ==================== 游戏页 ==================== */
 #page-game {
-  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center/cover no-repeat fixed;
+  background: linear-gradient(180deg, #D4A56A 0%, #C4935A 15%, #B8844E 50%, #A07040 100%);
   width: 100%;
   max-width: 440px;
   margin: 0 auto;
@@ -337,7 +337,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 0 4px;
+  padding: 4px 6px;
   min-height: 0;
 }
 .game-area::-webkit-scrollbar { width: 2px; }
@@ -347,38 +347,37 @@ html, body {
 .grill-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
+  gap: 6px;
   width: 100%;
-  padding: 0 2px;
 }
 
 /* 每个烤盘单元（上烤盘 + 下碟子） */
 .grill-unit {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   padding: 2px;
 }
 
 /* ---- 烤盘（上方）---- */
-/* 烤盘透明，食材直接显示在背景图的烤盘位置上 */
 .grill-pan {
-  background: transparent;
-  border-radius: 8px;
+  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/grill.png') center/100% 100% no-repeat;
+  border-radius: 6px;
   border: none;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 6px 4px;
-  min-height: 50px;
+  gap: 2px;
+  padding: 10px 6px 14px;
+  min-height: 58px;
   position: relative;
   transition: box-shadow 0.2s;
 }
 
-/* 辣味烤盘：不需要单独背景，由背景图区分 */
+/* 辣味烤盘：红色烤炉 */
 .grill-pan.spicy {
+  background-image: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/grill-spicy.png');
 }
 
 /* 拖拽悬停高亮 */
@@ -868,6 +867,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=13"></script>
+<script src="game.js?v=14"></script>
 </body>
 </html>
