@@ -261,11 +261,13 @@ html, body {
 .orders-area {
   width: 100%;
   padding: 2px 8px 2px;
-  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-height: 0;
 }
 
 .order-card {
@@ -340,6 +342,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  position: relative;
   padding: 100px 4px 2px;
   min-height: 0;
 }
@@ -823,11 +826,10 @@ html, body {
     <span id="prog-remain">还剩0个</span>
   </div>
 
-  <!-- 外卖订单区域（11关后显示） -->
-  <div class="orders-area" id="orders-area"></div>
-
   <!-- 游戏区（12个烤盘单元） -->
   <div class="game-area" id="game-area">
+    <!-- 外卖订单区域（11关后显示） -->
+    <div class="orders-area" id="orders-area"></div>
     <div class="grill-grid" id="grill-grid"></div>
   </div>
 
@@ -873,6 +875,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=24"></script>
+<script src="game.js?v=25"></script>
 </body>
 </html>
