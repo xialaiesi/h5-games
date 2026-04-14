@@ -337,7 +337,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 8px 4px;
+  padding: 0 4px;
   min-height: 0;
 }
 .game-area::-webkit-scrollbar { width: 2px; }
@@ -347,37 +347,38 @@ html, body {
 .grill-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 2px;
   width: 100%;
+  padding: 0 2px;
 }
 
 /* 每个烤盘单元（上烤盘 + 下碟子） */
 .grill-unit {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 4px;
+  gap: 2px;
+  padding: 2px;
 }
 
 /* ---- 烤盘（上方）---- */
+/* 烤盘透明，食材直接显示在背景图的烤盘位置上 */
 .grill-pan {
-  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/grill.png') center/cover no-repeat;
-  border-radius: 10px;
+  background: transparent;
+  border-radius: 8px;
   border: none;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 8px 6px;
-  min-height: 55px;
+  padding: 6px 4px;
+  min-height: 50px;
   position: relative;
-  transition: box-shadow 0.2s, filter 0.2s;
+  transition: box-shadow 0.2s;
 }
 
-/* 辣味烤盘：红色烤炉图片 */
+/* 辣味烤盘：不需要单独背景，由背景图区分 */
 .grill-pan.spicy {
-  background-image: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/grill-spicy.png');
 }
 
 /* 拖拽悬停高亮 */
@@ -453,7 +454,7 @@ html, body {
   width: 34px;
   height: 34px;
   border-radius: 6px;
-  border: 1.5px dashed rgba(255,255,255,0.1);
+  border: none;
   background: transparent;
   display: flex;
   align-items: center;
@@ -468,12 +469,10 @@ html, body {
 .pan-slot:active { cursor: grabbing; }
 .pan-slot.empty-slot {
   cursor: default;
-  border-color: rgba(255,255,255,0.06);
 }
 .pan-slot.has {
   border-color: transparent;
-  background: rgba(0,0,0,0.25);
-  border-radius: 8px;
+  background: transparent;
 }
 .pan-slot.dragging-source {
   opacity: 0.35;
@@ -869,6 +868,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=12"></script>
+<script src="game.js?v=13"></script>
 </body>
 </html>
