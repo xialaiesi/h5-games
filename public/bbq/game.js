@@ -634,6 +634,16 @@ function tryMoveTo(fromGrillId, fromSlotIdx, toGrillId) {
 function resolveBoard() {
   if (G.over || G.won) return;
 
+  // 0. 补充所有完全空的烤盘（拖空或消除后都触发）
+  let didRefill = false;
+  G.data.grills.forEach(g => {
+    if (g.pan.every(s => s === null) && g.dish.length > 0) {
+      refillGrill(g.id);
+      didRefill = true;
+    }
+  });
+  if (didRefill) { renderAll(); renderProgress(); }
+
   // 1. 查找可消除的烤盘（3个相同）
   const elimGrill = findEliminableGrill();
   if (elimGrill !== null) {
