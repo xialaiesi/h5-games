@@ -197,11 +197,13 @@ html, body {
   background: var(--dark-bg);
 }
 .game-inner {
-  width: 100%;
+  width: min(100%, 50vh);
+  min-width: 320px;
   height: 100%;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / cover no-repeat;
+  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / 100% 100% no-repeat;
 }
 
 /* ---- 顶部栏 ---- */
@@ -902,6 +904,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=30"></script>
+<script src="game.js?v=31"></script>
 </body>
 </html>
