@@ -402,7 +402,8 @@ function renderHall() {
 // ==================== 渲染：游戏页 ====================
 
 function renderGame() {
-  document.getElementById('lv-label').textContent = `第 ${G.level} 关`;
+  const lvLabel = document.getElementById('lv-label');
+  if (lvLabel) lvLabel.textContent = `第 ${G.level} 关`;
   updateToolbar();
   renderGrills();
   updateProgress();
@@ -425,9 +426,23 @@ function updateToolbar() {
 
 function renderGrills() {
   const grid = document.getElementById('grill-grid');
+  if (!grid) { console.error('grill-grid not found'); return; }
   grid.innerHTML = '';
-  G.data.grills.forEach(grill => {
-    grid.appendChild(makeGrillUnit(grill));
+  if (!G.data || !G.data.grills) {
+    console.error('G.data.grills is missing', G.data);
+    grid.innerHTML = '<div style="color:red;padding:20px;">数据加载失败</div>';
+    return;
+  }
+  G.data.grills.forEach((grill, i) => {
+    try {
+      grid.appendChild(makeGrillUnit(grill));
+    } catch (e) {
+      console.error('makeGrillUnit error at grill ' + i, e);
+      const errDiv = document.createElement('div');
+      errDiv.style.cssText = 'color:red;padding:10px;font-size:12px;';
+      errDiv.textContent = 'Grill ' + i + ': ' + e.message;
+      grid.appendChild(errDiv);
+    }
   });
 }
 
@@ -1060,30 +1075,36 @@ function showPage(id) {
 // ==================== 开启关卡 ====================
 
 function startLevel(lv) {
-  stopTimer();
-  stopOrderSystem();
+  try {
+    stopTimer();
+    stopOrderSystem();
 
-  G.level      = lv;
-  G.data       = generateLevel(lv);
-  G.score      = 0;
-  G.combo      = 0;
-  G.tools      = { ...TOOL_INIT };
-  G.history    = [];
-  G.cleared    = 0;
-  G.busy       = false;
-  G.over       = false;
-  G.won        = false;
-  G.removeMode = false;
+    G.level      = lv;
+    G.data       = generateLevel(lv);
+    G.score      = 0;
+    G.combo      = 0;
+    G.tools      = { ...TOOL_INIT };
+    G.history    = [];
+    G.cleared    = 0;
+    G.busy       = false;
+    G.over       = false;
+    G.won        = false;
+    G.removeMode = false;
 
-  hideOv('ov-win');
-  hideOv('ov-fail');
-  showPage('page-game');
-  renderGame();
-  startTimer(G.data.cfg.time);
+    hideOv('ov-win');
+    hideOv('ov-fail');
+    showPage('page-game');
+    renderGame();
+    startTimer(G.data.cfg.time);
 
-  // 11关后启动外卖订单系统
-  if (lv >= 11) {
-    startOrderSystem();
+    // 11关后启动外卖订单系统
+    if (lv >= 11) {
+      startOrderSystem();
+    }
+  } catch (e) {
+    console.error('startLevel error:', e);
+    const grid = document.getElementById('grill-grid');
+    if (grid) grid.innerHTML = '<div style="color:red;padding:20px;font-size:14px;">错误: ' + e.message + '<br>' + e.stack + '</div>';
   }
 }
 
