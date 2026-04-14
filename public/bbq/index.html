@@ -197,8 +197,8 @@ html, body {
   background: linear-gradient(180deg, #8B6242 0%, #A0724E 15%, #C4956A 30%, #8B6242 50%, #6B4226 100%);
 }
 .game-inner {
-  width: 100%;
-  max-width: 480px;
+  width: min(100%, 55vh);
+  min-width: 320px;
   height: 100%;
   margin: 0 auto;
   display: flex;
@@ -366,7 +366,7 @@ html, body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 10px 4px 2px;
+  padding: 3% 1% 0;
   min-height: 0;
 }
 .game-area::-webkit-scrollbar { width: 2px; }
@@ -399,8 +399,8 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 10px 6px 12px;
-  min-height: 70px;
+  padding: 5% 3%;
+  min-height: 0;
   position: relative;
   transition: box-shadow 0.2s;
   /* 让烤盘图覆盖背景图中的烤盘 */
@@ -901,6 +901,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=37"></script>
+<script src="game.js?v=38"></script>
 </body>
 </html>
