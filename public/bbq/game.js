@@ -94,49 +94,72 @@ function generateLevel(levelNum) {
   const numTypes = Math.min(cfg.numTypes, pool.length);
   const chosen = shuffle(pool).slice(0, numTypes);
 
-  // 总食材数：每种类型数量是3的倍数
-  // 总量 = GRILL_COUNT * (itemsPerDish + PAN_CAPACITY)
-  // 前 GRILL_COUNT*PAN_CAPACITY 个用来填初始烤盘，剩余在碟子
-  const totalPerType = ceil3(Math.ceil(GRILL_COUNT * (cfg.itemsPerDish + PAN_CAPACITY) / numTypes));
-  const actualTotal  = totalPerType * numTypes;
+  // ---- 计算总食材数（必须是3的整倍数） ----
+  // 留 emptyGrills 个烤盘初始为空（给玩家拖拽空间）
+  const emptyGrills = Math.max(2, Math.min(3, Math.floor(GRILL_COUNT * 0.25)));
+  const filledGrills = GRILL_COUNT - emptyGrills; // 初始有食材的烤盘数
+
+  // 初始烤盘食材 + 碟子食材
+  const initialPanCount = filledGrills * PAN_CAPACITY;
+  const totalDishCount  = GRILL_COUNT * cfg.itemsPerDish;
+  const rawTotal = initialPanCount + totalDishCount;
+
+  // 每种类型数量取3的倍数，确保总数是3的整倍数
+  const perType     = ceil3(Math.ceil(rawTotal / numTypes));
+  const actualTotal = perType * numTypes;
 
   // 生成所有食材
   const allItems = [];
   chosen.forEach(ing => {
-    for (let i = 0; i < totalPerType; i++) {
+    for (let i = 0; i < perType; i++) {
       allItems.push({ uid: nextUid(), typeId: ing.id, emoji: ing.emoji, name: ing.name });
     }
   });
 
   const bag = shuffle(allItems);
 
-  // 前 GRILL_COUNT*3 个食材直接放到烤盘（3个一组）
-  const panItems   = bag.slice(0, GRILL_COUNT * PAN_CAPACITY);
-  const dishItems  = bag.slice(GRILL_COUNT * PAN_CAPACITY);
+  // 前 filledGrills*3 个放到有食材的烤盘，剩余全部进碟子
+  const panItems  = bag.slice(0, initialPanCount);
+  const dishItems = bag.slice(initialPanCount);
 
-  // 把 dishItems 分配到12个碟子
+  // 把 dishItems 分配到12个碟子（均匀分配）
   const dishes = Array.from({ length: GRILL_COUNT }, () => []);
   dishItems.forEach((item, idx) => {
     dishes[idx % GRILL_COUNT].push(item);
   });
 
   // 辣盘分配
-  const spicyCount   = lv => Math.round(GRILL_COUNT * getLevelCfg(lv).spicyRatio);
+  const spicyCount   = Math.round(GRILL_COUNT * cfg.spicyRatio);
   const spicyIndices = new Set(
-    shuffle(Array.from({ length: GRILL_COUNT }, (_, i) => i)).slice(0, spicyCount(levelNum))
+    shuffle(Array.from({ length: GRILL_COUNT }, (_, i) => i)).slice(0, spicyCount)
   );
 
-  // 构造烤盘，烤盘初始食材从 panItems 取
-  const grills = Array.from({ length: GRILL_COUNT }, (_, i) => ({
-    id:    i,
-    spicy: spicyIndices.has(i),
-    pan:   [
-      panItems[i * PAN_CAPACITY + 0],
-      panItems[i * PAN_CAPACITY + 1],
-      panItems[i * PAN_CAPACITY + 2],
-    ],
-    dish:  dishes[i],
-  }));
+  // 随机选择哪些烤盘初始为空
+  const grillOrder = shuffle(Array.from({ length: GRILL_COUNT }, (_, i) => i));
+  const emptySet   = new Set(grillOrder.slice(0, emptyGrills));
+
+  // 构造烤盘
+  let panCursor = 0;
+  const grills = Array.from({ length: GRILL_COUNT }, (_, i) => {
+    let pan;
+    if (emptySet.has(i)) {
+      // 空烤盘（留给玩家拖拽用）
+      pan = [null, null, null];
+    } else {
+      // 填满3个食材
+      pan = [
+        panItems[panCursor++],
+        panItems[panCursor++],
+        panItems[panCursor++],
+      ];
+    }
+    return {
+      id:    i,
+      spicy: spicyIndices.has(i),
+      pan,
+      dish:  dishes[i],
+    };
+  });
 
   return { levelNum, grills, totalItems: actualTotal, cfg };
 }
