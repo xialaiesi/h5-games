@@ -53,21 +53,21 @@ const ceil3 = n => Math.ceil(n / 3) * 3;
 // ==================== 关卡配置 ====================
 
 function getLevelCfg(lv) {
-  if (lv <= 3)  return { numTypes: 3,  itemsPerDish: 3,  time: 300, spicyRatio: 0,    orderInterval: 0,  orderTime: 0,  maxOrders: 0 };
-  if (lv <= 6)  return { numTypes: 4,  itemsPerDish: 4,  time: 280, spicyRatio: 0.3,  orderInterval: 0,  orderTime: 0,  maxOrders: 0 };
-  if (lv <= 10) return { numTypes: 5,  itemsPerDish: 4,  time: 260, spicyRatio: 0.4,  orderInterval: 0,  orderTime: 0,  maxOrders: 0 };
-  if (lv <= 15) return { numTypes: 5,  itemsPerDish: 5,  time: 240, spicyRatio: 0.4,  orderInterval: 60, orderTime: 45, maxOrders: 1 };
-  if (lv <= 20) return { numTypes: 6,  itemsPerDish: 5,  time: 220, spicyRatio: 0.4,  orderInterval: 55, orderTime: 40, maxOrders: 1 };
-  if (lv <= 25) return { numTypes: 7,  itemsPerDish: 6,  time: 210, spicyRatio: 0.45, orderInterval: 50, orderTime: 38, maxOrders: 1 };
-  if (lv <= 30) return { numTypes: 8,  itemsPerDish: 6,  time: 200, spicyRatio: 0.45, orderInterval: 45, orderTime: 35, maxOrders: 2 };
-  if (lv <= 40) return { numTypes: 9,  itemsPerDish: 7,  time: 190, spicyRatio: 0.5,  orderInterval: 35, orderTime: 30, maxOrders: 2 };
+  if (lv <= 3)  return { numTypes: 3,  itemsPerDish: 3,  time: 300, spicyRatio: 0,    orderInterval: 60, orderTime: 50, maxOrders: 1 };
+  if (lv <= 6)  return { numTypes: 4,  itemsPerDish: 4,  time: 280, spicyRatio: 0.3,  orderInterval: 55, orderTime: 45, maxOrders: 1 };
+  if (lv <= 10) return { numTypes: 5,  itemsPerDish: 4,  time: 260, spicyRatio: 0.4,  orderInterval: 50, orderTime: 40, maxOrders: 1 };
+  if (lv <= 15) return { numTypes: 5,  itemsPerDish: 5,  time: 240, spicyRatio: 0.4,  orderInterval: 45, orderTime: 38, maxOrders: 1 };
+  if (lv <= 20) return { numTypes: 6,  itemsPerDish: 5,  time: 220, spicyRatio: 0.4,  orderInterval: 40, orderTime: 35, maxOrders: 1 };
+  if (lv <= 25) return { numTypes: 7,  itemsPerDish: 6,  time: 210, spicyRatio: 0.45, orderInterval: 35, orderTime: 32, maxOrders: 2 };
+  if (lv <= 30) return { numTypes: 8,  itemsPerDish: 6,  time: 200, spicyRatio: 0.45, orderInterval: 30, orderTime: 28, maxOrders: 2 };
+  if (lv <= 40) return { numTypes: 9,  itemsPerDish: 7,  time: 190, spicyRatio: 0.5,  orderInterval: 25, orderTime: 25, maxOrders: 2 };
   return {
     numTypes: Math.min(12, 10 + Math.floor((lv - 40) / 3)),
     itemsPerDish: 8,
     time: Math.max(150, 190 - (lv - 40) * 2),
     spicyRatio: 0.5,
-    orderInterval: 30,
-    orderTime: 25,
+    orderInterval: 20,
+    orderTime: 22,
     maxOrders: 2,
   };
 }
@@ -899,7 +899,7 @@ const Game = {
     // 延迟一帧后启动倒计时，让渲染先完成
     requestAnimationFrame(() => {
       startTimer();
-      if (lv >= 11) startOrderSystem();
+      startOrderSystem();
     });
   },
 };
