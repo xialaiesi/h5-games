@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>疯狂烧烤摊 🔥</title>
+<style>
+/* ===== Reset ===== */
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --orange:    #FF6B00;
+  --orange-lt: #FF8C30;
+  --gold:      #FFD700;
+  --dark-bg:   #2D1506;
+  --dark-card: #3D1F08;
+  --grill-bg:  #1A0D03;
+  --tray-bg:   #4a2a0a;
+  --text:      #FFF5E0;
+  --muted:     #C4956A;
+  --glow:      0 0 14px rgba(255,107,0,0.85);
+  --glow-gold: 0 0 16px rgba(255,215,0,0.7);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--dark-bg);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+               "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ===== 页面层 ===== */
+.page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  transition: opacity 0.25s ease;
+}
+.page.hidden { opacity: 0; pointer-events: none; }
+
+/* ==================== 关卡大厅 ==================== */
+#page-hall {
+  background: radial-gradient(ellipse at 50% 0%, #5a2a08 0%, #2D1506 55%, #150b02 100%);
+}
+
+.hall-header {
+  width: 100%;
+  max-width: 440px;
+  padding: 20px 20px 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.hall-fire { font-size: 40px; line-height: 1; margin-bottom: 4px; }
+
+.hall-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255,107,0,0.7), 0 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: 3px;
+}
+
+.hall-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+
+.hall-stats {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.hall-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hall-stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.hall-stat-lbl {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.divider {
+  width: 100%;
+  max-width: 440px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,107,0,0.4), transparent);
+  margin: 10px 0;
+  flex-shrink: 0;
+}
+
+.level-grid-wrap {
+  flex: 1;
+  width: 100%;
+  max-width: 440px;
+  overflow-y: auto;
+  padding: 8px 14px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.level-grid-wrap::-webkit-scrollbar { width: 3px; }
+.level-grid-wrap::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 2px; }
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.level-btn {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative;
+}
+.level-btn.unlocked {
+  background: var(--dark-card);
+  border-color: var(--orange);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.level-btn.unlocked:active { transform: scale(0.9); }
+.level-btn.completed {
+  background: linear-gradient(145deg, #5a3010, #3d1f08);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 6px rgba(255,215,0,0.25);
+}
+.level-btn.completed:active { transform: scale(0.9); }
+.level-btn.locked {
+  background: rgba(0,0,0,0.35);
+  border-color: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.2);
+  cursor: default;
+}
+.lv-num  { font-size: 16px; font-weight: 700; line-height: 1; }
+.lv-star { font-size: 9px; letter-spacing: 1px; line-height: 1; }
+
+/* ==================== 游戏页 ==================== */
+#page-game {
+  background: radial-gradient(ellipse at 50% 30%, #4a2008 0%, #2D1506 60%, #150b02 100%);
+  max-width: 440px;
+  left: 50%;
+  transform: translateX(-50%);
+  right: unset;
+}
+
+/* ---- 顶部栏 ---- */
+.topbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.btn-back {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 18px;
+  padding: 5px 11px;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-back:active { opacity: 0.7; }
+
+.lv-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  text-align: center;
+  flex: 1;
+}
+
+.timer-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  flex-shrink: 0;
+  min-width: 72px;
+  justify-content: flex-end;
+}
+.timer-box.urgent { color: #ff4444; animation: blink-timer 0.5s ease infinite alternate; }
+@keyframes blink-timer {
+  from { opacity: 1; }
+  to   { opacity: 0.5; }
+}
+
+/* ---- 进度栏 ---- */
+.progress-row {
+  width: 100%;
+  padding: 3px 14px 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.progress-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.09);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), var(--gold));
+  border-radius: 3px;
+  transition: width 0.35s ease;
+}
+
+/* ---- 游戏区 ---- */
+.game-area {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 6px;
+  min-height: 0;
+}
+.game-area::-webkit-scrollbar { width: 2px; }
+.game-area::-webkit-scrollbar-thumb { background: rgba(255,107,0,0.4); border-radius: 1px; }
+
+/* ---- 烤盘单元行布局 ---- */
+/*
+ * 布局：每行有 N 个烤盘单元
+ * 每个单元 = [左托盘] [烤盘] [右托盘]
+ * 3列 x 4行 = 12个烤盘
+ */
+.grill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+/* 单个烤盘单元：左托盘 + 烤盘主体 + 右托盘 */
+.grill-unit {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 3px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 10px;
+  padding: 3px;
+  border: 1px solid rgba(255,107,0,0.12);
+}
+
+/* ---- 烤盘主体 ---- */
+.grill-pan {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--grill-bg);
+  background-image:
+    repeating-linear-gradient(0deg,
+      transparent, transparent 8px,
+      rgba(255,107,0,0.07) 8px, rgba(255,107,0,0.07) 9px),
+    repeating-linear-gradient(90deg,
+      transparent, transparent 8px,
+      rgba(255,107,0,0.07) 8px, rgba(255,107,0,0.07) 9px);
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,107,0,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 4px 2px 3px;
+  gap: 2px;
+  position: relative;
+  min-height: 68px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.grill-pan.glow-match {
+  border-color: var(--gold);
+  box-shadow: var(--glow-gold);
+}
+.grill-pan.full {
+  border-color: rgba(244,67,54,0.6);
+}
+
+/* 烤盘内食材槽行 */
+.pan-slots {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 单个烤盘槽位 */
+.pan-slot {
+  width: 24px;
+  height: 26px;
+  border-radius: 5px;
+  border: 1px dashed rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.pan-slot.has {
+  border-color: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+}
+.pan-slot.glow {
+  border-color: var(--gold);
+  box-shadow: 0 0 8px rgba(255,215,0,0.6);
+}
+
+/* 消除动画 */
+@keyframes pop-out {
+  0%   { transform: scale(1);    opacity: 1; }
+  40%  { transform: scale(1.4);  }
+  70%  { transform: scale(1.2);  opacity: 0.7; }
+  100% { transform: scale(0);    opacity: 0; }
+}
+.pan-slot.pop { animation: pop-out 0.42s ease forwards; }
+
+/* 烤盘上的清盘按钮（道具激活时显示） */
+.grill-pan.remove-mode {
+  cursor: pointer;
+  border-color: rgba(255, 80, 80, 0.7);
+  box-shadow: 0 0 12px rgba(255,80,80,0.4);
+}
+.grill-pan.remove-mode::after {
+  content: '🗑️';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 7px;
+}
+
+/* ---- 食材托盘 ---- */
+.ingredient-tray {
+  width: 28px;
+  flex-shrink: 0;
+  background: var(--tray-bg);
+  border-radius: 6px;
+  border: 1px solid rgba(255,107,0,0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2px 1px 2px;
+  gap: 1px;
+  position: relative;
+  min-height: 68px;
+  overflow: hidden;
+}
+
+/* 托盘上的食材（层叠） */
+.tray-item {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  cursor: default;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.05);
+  flex-shrink: 0;
+  transition: transform 0.12s, box-shadow 0.12s, opacity 0.15s, filter 0.15s;
+  position: relative;
+}
+/* 最顶部（可点击）的食材 */
+.tray-item.top {
+  border-color: var(--orange);
+  box-shadow: var(--glow);
+  background: var(--dark-card);
+  cursor: pointer;
+  z-index: 2;
+}
+.tray-item.top:active {
+  transform: scale(0.88);
+}
+/* 下面被压住的食材（灰显） */
+.tray-item.stacked {
+  opacity: 0.38;
+  filter: grayscale(60%) brightness(0.55);
+  cursor: not-allowed;
+}
+
+/* 托盘为空的占位 */
+.tray-empty {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px dashed rgba(255,255,255,0.1);
+  opacity: 0.3;
+}
+
+/* 抖动动画 */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-4px); }
+  40%     { transform: translateX(4px); }
+  60%     { transform: translateX(-3px); }
+  80%     { transform: translateX(3px); }
+}
+.tray-item.shake { animation: shake 0.3s ease; }
+
+/* ---- 飞行食材（fixed，附在body） ---- */
+.item-fly {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  background: var(--dark-card);
+  border: 2px solid var(--orange);
+  box-shadow: var(--glow);
+  z-index: 900;
+  pointer-events: none;
+  transition:
+    left 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
+    top  0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ---- 道具栏 ---- */
+.toolbelt {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 12px 6px;
+  flex-shrink: 0;
+}
+.tool-btn {
+  flex: 1;
+  max-width: 100px;
+  background: var(--dark-card);
+  border: 1.5px solid rgba(255,107,0,0.35);
+  border-radius: 16px;
+  padding: 6px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.12s, opacity 0.2s;
+}
+.tool-btn:active:not(.off) {
+  transform: scale(0.92);
+  background: rgba(255,107,0,0.18);
+}
+.tool-btn.off { opacity: 0.3; cursor: default; }
+.tool-btn.active-mode {
+  border-color: rgba(255,80,80,0.8);
+  background: rgba(255,80,80,0.15);
+  box-shadow: 0 0 10px rgba(255,80,80,0.3);
+}
+.tool-icon  { font-size: 18px; line-height: 1; }
+.tool-count { font-size: 12px; font-weight: 700; color: var(--gold); }
+
+/* ---- 连击气泡 ---- */
+.combo-tip {
+  position: fixed;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 2px 8px rgba(255,107,0,0.8);
+  pointer-events: none;
+  z-index: 1000;
+  animation: combo-up 0.85s ease forwards;
+}
+@keyframes combo-up {
+  0%   { transform: translateY(0)    scale(0.75); opacity: 1; }
+  55%  { transform: translateY(-38px) scale(1.1);  opacity: 1; }
+  100% { transform: translateY(-65px) scale(0.9);  opacity: 0; }
+}
+
+/* ==================== 弹窗 ==================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s;
+}
+.overlay.show { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: linear-gradient(155deg, #5a2a08 0%, #2D1506 100%);
+  border: 2px solid var(--orange);
+  border-radius: 26px;
+  padding: 28px 24px 22px;
+  width: min(310px, 90vw);
+  text-align: center;
+  box-shadow: 0 10px 50px rgba(0,0,0,0.65), 0 0 22px rgba(255,107,0,0.28);
+  transform: scale(0.82);
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.overlay.show .modal { transform: scale(1); }
+
+.modal-icon  { font-size: 58px; display: block; margin-bottom: 10px; }
+.modal-title {
+  font-size: 26px; font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 2px 10px rgba(255,107,0,0.5);
+  margin-bottom: 6px;
+}
+.modal-sub   { font-size: 15px; color: var(--text); margin-bottom: 4px; }
+.modal-stars { font-size: 28px; letter-spacing: 5px; margin: 8px 0 16px; }
+
+.mbtn {
+  display: block; width: 100%;
+  padding: 13px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.mbtn:last-child { margin-bottom: 0; }
+.mbtn:active { transform: scale(0.94); }
+.mbtn.prim {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-lt) 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255,107,0,0.48);
+}
+.mbtn.sec {
+  background: rgba(255,255,255,0.09);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+
+/* ---- 庆祝粒子 ---- */
+.conf {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1900;
+  animation: conf-drop linear forwards;
+}
+@keyframes conf-drop {
+  0%   { transform: translateY(-30px) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(105vh) rotate(600deg); opacity: 0.2; }
+}
+
+/* ==================== 响应式 ==================== */
+@media (min-width: 441px) {
+  #page-hall { align-items: center; }
+}
+
+/* 小屏高度：紧凑模式 */
+@media (max-height: 700px) {
+  .grill-pan { min-height: 60px; }
+  .ingredient-tray { min-height: 60px; }
+  .pan-slot { width: 22px; height: 22px; font-size: 14px; }
+  .tray-item { width: 22px; height: 22px; font-size: 13px; }
+  .grill-grid { gap: 5px; }
+}
+
+@media (max-height: 600px) {
+  .grill-pan { min-height: 52px; }
+  .ingredient-tray { min-height: 52px; }
+  .pan-slot { width: 20px; height: 20px; font-size: 12px; }
+  .tray-item { width: 20px; height: 20px; font-size: 12px; }
+  .grill-grid { gap: 4px; }
+  .toolbelt { padding: 2px 12px 4px; }
+}
+
+/* 安全区适配 */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .toolbelt {
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== 关卡大厅 ==================== -->
+<div id="page-hall" class="page">
+  <div class="hall-header">
+    <div class="hall-fire">🔥</div>
+    <div class="hall-title">疯狂烧烤摊</div>
+    <div class="hall-subtitle">凑齐3个相同食材自动消除，清空所有食材即可通关</div>
+    <div class="hall-stats">
+      <div class="hall-stat">
+        <span class="hall-stat-val" id="hall-score">0</span>
+        <span class="hall-stat-lbl">累计积分</span>
+      </div>
+      <div class="hall-stat">
+        <span class="hall-stat-val" id="hall-maxlv">1</span>
+        <span class="hall-stat-lbl">当前进度</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="level-grid-wrap">
+    <div class="level-grid" id="level-grid"></div>
+  </div>
+</div>
+
+<!-- ==================== 游戏页 ==================== -->
+<div id="page-game" class="page hidden">
+
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <button class="btn-back" id="btn-back">← 返回</button>
+    <div class="lv-label" id="lv-label">第 1 关</div>
+    <div class="timer-box" id="timer-box">⏱ <span id="timer-val">5:00</span></div>
+  </div>
+
+  <!-- 进度栏 -->
+  <div class="progress-row">
+    <span id="prog-text">0/0</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+    <span id="prog-remain">还剩0个</span>
+  </div>
+
+  <!-- 游戏区（12个烤盘） -->
+  <div class="game-area">
+    <div class="grill-grid" id="grill-grid"></div>
+  </div>
+
+  <!-- 道具栏 -->
+  <div class="toolbelt">
+    <div class="tool-btn" id="tool-undo"    onclick="Game.useTool('undo')">
+      <span class="tool-icon">↩️</span><span class="tool-count" id="cnt-undo">3</span>
+    </div>
+    <div class="tool-btn" id="tool-shuffle" onclick="Game.useTool('shuffle')">
+      <span class="tool-icon">🔀</span><span class="tool-count" id="cnt-shuffle">1</span>
+    </div>
+    <div class="tool-btn" id="tool-remove"  onclick="Game.useTool('remove')">
+      <span class="tool-icon">🗑️</span><span class="tool-count" id="cnt-remove">1</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 通关弹窗 ==================== -->
+<div class="overlay" id="ov-win">
+  <div class="modal">
+    <span class="modal-icon">🎉</span>
+    <div class="modal-title">通关！</div>
+    <div class="modal-sub">得分：<strong id="win-score">0</strong></div>
+    <div class="modal-stars" id="win-stars">⭐⭐⭐</div>
+    <button class="mbtn prim" id="btn-next">下一关 →</button>
+    <button class="mbtn sec"  id="btn-win-retry">再来一次</button>
+    <button class="mbtn sec"  id="btn-win-hall">关卡选择</button>
+  </div>
+</div>
+
+<!-- ==================== 失败弹窗 ==================== -->
+<div class="overlay" id="ov-fail">
+  <div class="modal">
+    <span class="modal-icon">😭</span>
+    <div class="modal-title" id="fail-title">烤盘全满了！</div>
+    <div class="modal-sub" id="fail-sub">别灰心，换个思路再试试</div>
+    <button class="mbtn prim" id="btn-fail-retry">重新挑战</button>
+    <button class="mbtn sec"  id="btn-fail-hall">返回关卡</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
