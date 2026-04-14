@@ -171,7 +171,7 @@ html, body {
 
 /* ==================== 游戏页 ==================== */
 #page-game {
-  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / 100% auto no-repeat, #A07040;
+  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / 100% 100% no-repeat;
   width: 100%;
   max-width: 440px;
   margin: 0 auto;
@@ -369,10 +369,12 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 10px 6px 14px;
-  min-height: 58px;
+  padding: 12px 8px 16px;
+  min-height: 62px;
   position: relative;
   transition: box-shadow 0.2s;
+  /* 让烤盘图覆盖背景图中的烤盘 */
+  margin: -2px;
 }
 
 /* 辣味烤盘：红色烤炉 */
@@ -867,6 +869,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=15"></script>
+<script src="game.js?v=16"></script>
 </body>
 </html>
