@@ -205,6 +205,9 @@ html, body {
   display: flex;
   flex-direction: column;
 }
+@media (min-width: 481px) {
+  .game-inner { max-width: none; }
+}
 
 /* ---- 顶部栏 ---- */
 .topbar {
@@ -367,7 +370,7 @@ html, body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 100px 4px 2px;
+  padding: 12vh 1% 2px;
   min-height: 0;
 }
 .game-area::-webkit-scrollbar { width: 2px; }
@@ -400,8 +403,8 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 20px 10px 22px;
-  min-height: 86px;
+  padding: 6% 3%;
+  aspect-ratio: 2.2 / 1;
   position: relative;
   transition: box-shadow 0.2s;
   /* 让烤盘图覆盖背景图中的烤盘 */
@@ -779,9 +782,8 @@ html, body {
 
 @media (max-height: 700px) {
   .game-area { padding-top: 80px; }
-  .grill-pan { min-height: 60px; padding: 14px 8px 16px; }
   .pan-slot { width: 30px; height: 30px; font-size: 18px; }
-  .grill-grid { gap: 5px; row-gap: 20px; }
+  .grill-grid { gap: 5px; row-gap: 16px; }
   .grill-unit { gap: 0px; padding: 0; }
   .dish-main { min-height: 20px; padding: 2px 4px; }
   .dish-emoji { font-size: 12px; }
@@ -789,9 +791,8 @@ html, body {
 
 @media (max-height: 620px) {
   .game-area { padding-top: 60px; }
-  .grill-pan { min-height: 50px; padding: 10px 6px 12px; }
   .pan-slot { width: 28px; height: 28px; font-size: 17px; }
-  .grill-grid { gap: 4px; row-gap: 16px; }
+  .grill-grid { gap: 4px; row-gap: 12px; }
   .grill-unit { gap: 0px; }
   .toolbelt { padding: 2px 10px 3px; }
   .order-card { padding: 3px 6px; }
@@ -904,6 +905,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=35"></script>
+<script src="game.js?v=36"></script>
 </body>
 </html>
