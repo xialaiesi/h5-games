@@ -251,7 +251,17 @@ function spawnOrder() {
   };
   order.handle = setInterval(() => {
     order.timerSec--;
-    renderOrders();
+    // 只更新倒计时数字，不重建整个DOM
+    const timerEl = document.getElementById('order-timer-' + order.id);
+    if (timerEl) {
+      timerEl.textContent = order.timerSec + 's';
+      timerEl.classList.toggle('low', order.timerSec <= 10);
+    }
+    // 低于10秒时给卡片加urgent样式（只加一次）
+    if (order.timerSec <= 10) {
+      const cardEl = document.getElementById('order-card-' + order.id);
+      if (cardEl) cardEl.classList.add('urgent-order');
+    }
     if (order.timerSec <= 0) {
       clearInterval(order.handle);
       if (!G.over && !G.won) triggerFail('order_timeout');
@@ -275,6 +285,7 @@ function renderOrders() {
   area.innerHTML = '';
   G.orders.forEach(o => {
     const card = document.createElement('div');
+    card.id = 'order-card-' + o.id;
     card.className = 'order-card' +
       (o.completed ? ' completed-order' : '') +
       (!o.completed && o.timerSec <= 10 ? ' urgent-order' : '');
@@ -288,7 +299,7 @@ function renderOrders() {
           `<span class="order-item${it.done ? ' done' : ''}">${it.emoji}</span>`
         ).join('')}</div>
       </div>
-      <div class="${timerClass}">${o.completed ? '✓' : o.timerSec + 's'}</div>`;
+      <div id="order-timer-${o.id}" class="${timerClass}">${o.completed ? '✓' : o.timerSec + 's'}</div>`;
     area.appendChild(card);
   });
 }
