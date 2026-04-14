@@ -94,14 +94,16 @@ function generateLevel(levelNum) {
   const numTypes = Math.min(cfg.numTypes, pool.length);
   const chosen = shuffle(pool).slice(0, numTypes);
 
-  // ---- 计算总食材数（必须是3的整倍数） ----
-  // 每个烤盘初始放2个食材，留1个空位供拖拽
-  const itemsPerPan    = 2;
-  const initialPanCount = GRILL_COUNT * itemsPerPan; // 24
-  const totalDishCount  = GRILL_COUNT * cfg.itemsPerDish;
-  const rawTotal = initialPanCount + totalDishCount;
+  // ---- 碟子模型：每碟3个食材，cfg.itemsPerDish = 碟子数量 ----
+  const dishPlates = cfg.itemsPerDish; // 每个烤盘下方的碟子数
+  const itemsPerPan = 2; // 烤盘初始放2个食材，留1个空位
 
-  // 每种类型数量取3的倍数，确保总数是3的整倍数
+  // 总食材 = 烤盘初始(每盘2个) + 碟子(每盘 dishPlates碟 × 3个/碟)
+  const initialPanCount = GRILL_COUNT * itemsPerPan;
+  const totalDishItems  = GRILL_COUNT * dishPlates * PAN_CAPACITY;
+  const rawTotal = initialPanCount + totalDishItems;
+
+  // 每种类型数量取3的倍数
   const perType     = ceil3(Math.ceil(rawTotal / numTypes));
   const actualTotal = perType * numTypes;
 
@@ -115,15 +117,26 @@ function generateLevel(levelNum) {
 
   const bag = shuffle(allItems);
 
-  // 前 initialPanCount 个放到烤盘（每盘2个），剩余进碟子
+  // 前 initialPanCount 个放到烤盘，剩余分组为碟子（每碟3个）
   const panItems  = bag.slice(0, initialPanCount);
   const dishItems = bag.slice(initialPanCount);
 
-  // 把 dishItems 分配到12个碟子（均匀分配）
+  // 把 dishItems 分成碟子（每碟3个食材），均匀分配到12个烤盘
+  // dishes[i] = [[item,item,item], [item,item,item], ...] 碟子栈
   const dishes = Array.from({ length: GRILL_COUNT }, () => []);
-  dishItems.forEach((item, idx) => {
-    dishes[idx % GRILL_COUNT].push(item);
-  });
+  let cursor = 0;
+  // 先每个烤盘分配 dishPlates 碟
+  for (let gi = 0; gi < GRILL_COUNT; gi++) {
+    for (let d = 0; d < dishPlates && cursor + 3 <= dishItems.length; d++) {
+      dishes[gi].push([dishItems[cursor], dishItems[cursor+1], dishItems[cursor+2]]);
+      cursor += 3;
+    }
+  }
+  // 剩余食材继续按3个一组分配
+  while (cursor + 3 <= dishItems.length) {
+    dishes[cursor % GRILL_COUNT].push([dishItems[cursor], dishItems[cursor+1], dishItems[cursor+2]]);
+    cursor += 3;
+  }
 
   // 辣盘分配
   const spicyCount   = Math.round(GRILL_COUNT * cfg.spicyRatio);
@@ -135,7 +148,6 @@ function generateLevel(levelNum) {
   const grills = Array.from({ length: GRILL_COUNT }, (_, i) => {
     const a = panItems[i * itemsPerPan];
     const b = panItems[i * itemsPerPan + 1];
-    // 随机决定空位位置（左、中、右）
     const emptyPos = Math.floor(Math.random() * 3);
     let pan;
     if (emptyPos === 0)      pan = [null, a, b];
@@ -146,7 +158,7 @@ function generateLevel(levelNum) {
       id:    i,
       spicy: spicyIndices.has(i),
       pan,
-      dish:  dishes[i],
+      dish:  dishes[i], // 碟子栈：[[item,item,item], ...]
     };
   });
 
@@ -211,13 +223,16 @@ function spawnOrder() {
   const cfg = G.data.cfg;
   const availableTypes = new Set();
   G.data.grills.forEach(g => {
-    g.dish.forEach(it => availableTypes.add(it.typeId));
+    // dish 是碟子栈：[[item,item,item], ...]
+    g.dish.forEach(plate => plate.forEach(it => availableTypes.add(it.typeId)));
     g.pan.forEach(it => { if (it) availableTypes.add(it.typeId); });
   });
   const typeArr = Array.from(availableTypes);
-  if (typeArr.length < 3) return;
+  if (typeArr.length < 1) return;
 
-  const chosenTypes = shuffle(typeArr).slice(0, 3);
+  // 随机1-3种食材
+  const orderCount = Math.min(typeArr.length, 1 + Math.floor(Math.random() * 3));
+  const chosenTypes = shuffle(typeArr).slice(0, orderCount);
   const hasSpicy  = G.data.grills.some(g => g.spicy);
   const hasNormal = G.data.grills.some(g => !g.spicy);
   let orderSpicy  = false;
@@ -373,16 +388,16 @@ function buildDishStack(g) {
   main.className = 'dish-main' + (count === 0 ? ' empty' : '');
 
   if (count > 0) {
-    // 显示最顶部的1-2个食材
-    const topItems = g.dish.slice(-Math.min(2, count));
-    topItems.forEach(it => {
+    // 显示最顶部碟子的食材
+    const topPlate = g.dish[count - 1];
+    topPlate.forEach(it => {
       const span = document.createElement('span');
       span.className = 'dish-emoji';
       span.textContent = it.emoji;
       main.appendChild(span);
     });
 
-    // 数量角标
+    // 角标显示碟子数量
     const badge = document.createElement('span');
     badge.className = 'dish-count-badge';
     badge.textContent = count;
@@ -633,12 +648,18 @@ function resolveBoard() {
   checkDeadlock();
 }
 
-/** 只补充指定烤盘（消除后调用） */
+/** 消除后从碟子栈取出一碟（3个食材）填满烤盘 */
 function refillGrill(grillId) {
   const grill = G.data.grills[grillId];
-  for (let i = 0; i < PAN_CAPACITY; i++) {
-    if (grill.pan[i] === null && grill.dish.length > 0) {
-      grill.pan[i] = grill.dish.pop();
+  if (grill.dish.length === 0) return; // 没有碟子了
+
+  // 取出最顶部的一碟（数组最后一个）
+  const plate = grill.dish.pop();
+  // 填入烤盘空位
+  let pi = 0;
+  for (let i = 0; i < PAN_CAPACITY && pi < plate.length; i++) {
+    if (grill.pan[i] === null) {
+      grill.pan[i] = plate[pi++];
     }
   }
 }
@@ -758,9 +779,9 @@ function checkDeadlock() {
     g.pan.forEach(it => {
       if (it) typeCounts[it.typeId] = (typeCounts[it.typeId] || 0) + 1;
     });
-    g.dish.forEach(it => {
+    g.dish.forEach(plate => plate.forEach(it => {
       typeCounts[it.typeId] = (typeCounts[it.typeId] || 0) + 1;
-    });
+    }));
   });
 
   // 只看烤盘上的：如果某种食材在烤盘上有3个，理论上可以通过移动消除
@@ -820,7 +841,7 @@ function shakeGrill(grillId) {
 function saveSnapshot() {
   const snap = G.data.grills.map(g => ({
     pan:  g.pan.map(it => it ? { ...it } : null),
-    dish: g.dish.map(it => ({ ...it })),
+    dish: g.dish.map(plate => plate.map(it => ({ ...it }))),
   }));
   G.history.push({ snap, cleared: G.cleared, score: G.score });
   if (G.history.length > 5) G.history.shift();
