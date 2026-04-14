@@ -195,15 +195,16 @@ html, body {
 /* ==================== 游戏页 ==================== */
 #page-game {
   background: var(--dark-bg);
+  justify-content: center;
 }
 .game-inner {
-  width: min(100%, 50vh);
-  min-width: 320px;
+  width: 375px;
   height: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / 100% 100% no-repeat;
+  transform-origin: top center;
 }
 
 /* ---- 顶部栏 ---- */
@@ -904,6 +905,28 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=31"></script>
+<script>
+// 等比缩放：以375px为设计宽度
+(function() {
+  const DESIGN_W = 375;
+  function scaleGame() {
+    var inner = document.querySelector('.game-inner');
+    if (!inner) return;
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    // 按宽度计算缩放，但不超过按高度反算的宽度
+    var scale = Math.min(vw / DESIGN_W, vh / (DESIGN_W * 16 / 9) * (16 / 9));
+    scale = Math.min(scale, vh / inner.scrollHeight || scale);
+    // 简单按宽度缩放
+    scale = vw / DESIGN_W;
+    inner.style.transform = 'scale(' + scale + ')';
+    inner.style.height = (vh / scale) + 'px';
+  }
+  window.addEventListener('resize', scaleGame);
+  window.addEventListener('orientationchange', scaleGame);
+  document.addEventListener('DOMContentLoaded', scaleGame);
+})();
+</script>
+<script src="game.js?v=32"></script>
 </body>
 </html>
