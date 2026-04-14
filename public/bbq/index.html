@@ -337,7 +337,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 6px;
+  padding: 2px 4px;
   min-height: 0;
 }
 .game-area::-webkit-scrollbar { width: 2px; }
@@ -347,7 +347,7 @@ html, body {
 .grill-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 2px;
   width: 100%;
 }
 
@@ -355,8 +355,8 @@ html, body {
 .grill-unit {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 2px;
+  gap: 1px;
+  padding: 0px;
 }
 
 /* ---- 烤盘（上方）---- */
@@ -369,8 +369,8 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 12px 8px 16px;
-  min-height: 62px;
+  padding: 10px 6px 12px;
+  min-height: 56px;
   position: relative;
   transition: box-shadow 0.2s;
   /* 让烤盘图覆盖背景图中的烤盘 */
@@ -498,14 +498,14 @@ html, body {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 32px;
+  min-height: 24px;
 }
 
 /* 层叠碟子 */
 .dish-stack {
   position: relative;
   width: 80px;
-  height: 28px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -869,6 +869,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=16"></script>
+<script src="game.js?v=17"></script>
 </body>
 </html>
