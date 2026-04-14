@@ -774,18 +774,21 @@ html, body {
 }
 
 @media (max-height: 700px) {
-  .grill-pan { min-height: 44px; }
+  .game-area { padding-top: 80px; }
+  .grill-pan { min-height: 60px; padding: 14px 8px 16px; }
   .pan-slot { width: 30px; height: 30px; font-size: 18px; }
-  .grill-grid { gap: 5px; }
-  .grill-unit { gap: 2px; padding: 3px; }
+  .grill-grid { gap: 5px; row-gap: 20px; }
+  .grill-unit { gap: 0px; padding: 0; }
   .dish-main { min-height: 20px; padding: 2px 4px; }
   .dish-emoji { font-size: 12px; }
 }
 
 @media (max-height: 620px) {
-  .grill-pan { min-height: 38px; padding: 3px 2px; }
+  .game-area { padding-top: 60px; }
+  .grill-pan { min-height: 50px; padding: 10px 6px 12px; }
   .pan-slot { width: 28px; height: 28px; font-size: 17px; }
-  .grill-grid { gap: 4px; }
+  .grill-grid { gap: 4px; row-gap: 16px; }
+  .grill-unit { gap: 0px; }
   .toolbelt { padding: 2px 10px 3px; }
   .order-card { padding: 3px 6px; }
 }
@@ -895,6 +898,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=26"></script>
+<script src="game.js?v=27"></script>
 </body>
 </html>
