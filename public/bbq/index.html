@@ -46,7 +46,11 @@ html, body {
 /* ===== 页面层 ===== */
 .page {
   position: fixed;
-  inset: 0;
+  top: 0; bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -57,8 +61,8 @@ html, body {
 
 /* ==================== 关卡大厅 ==================== */
 #page-hall {
-  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / 100% 100% no-repeat;
-  background-color: #2D1506;
+  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/hall-bg.png') center top / cover no-repeat;
+  background-color: #1a1a3a;
 }
 
 .hall-header {
@@ -194,12 +198,8 @@ html, body {
 
 /* ==================== 游戏页 ==================== */
 #page-game {
-  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / 100% 100% no-repeat;
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
-  left: 50%;
-  transform: translateX(-50%);
+  background: url('https://villa-party-1348746784.cos.ap-guangzhou.myqcloud.com/bbq/assets/bg.jpg') center top / cover no-repeat;
+  background-color: var(--dark-bg);
 }
 
 /* ---- 顶部栏 ---- */
@@ -898,6 +898,6 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=27"></script>
+<script src="game.js?v=28"></script>
 </body>
 </html>
