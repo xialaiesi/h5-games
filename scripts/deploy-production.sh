@@ -67,7 +67,7 @@ log "重启 PM2 进程: $APP_NAME"
 
 log "等待健康检查通过: $HEALTH_URL"
 for ((i = 1; i <= HEALTH_RETRIES; i++)); do
-  if curl -fsS "$HEALTH_URL" >/dev/null; then
+  if curl -fsS "$HEALTH_URL" >/dev/null 2>&1; then
     log "部署完成"
     exit 0
   fi
