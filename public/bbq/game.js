@@ -30,7 +30,6 @@ const INGREDIENTS = [
 
 const GRILL_COUNT  = 12;
 const PAN_CAPACITY = 3;
-const SAVE_KEY     = 'bbq_crazy_v3';
 const TOOL_INIT    = { undo: 3, shuffle: 1, remove: 1, addtime: 1 };
 const COMBO_TEXTS  = ['', '', 'Nice! 🔥', 'Great! 🔥🔥', 'Awesome! ⚡', 'COMBO! 🌟', 'MASTER! 👑'];
 
@@ -167,16 +166,53 @@ function generateLevel(levelNum) {
 
 // ==================== 存档 ====================
 
+const SAVE_KEY = 'bbq_crazy_v4';
+const BBQ_API_BASE = '/api/bbq';
+
 function loadSave() {
-  try {
-    const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-    if (d) return { maxLevel: 1, levelStars: {}, totalScore: 0, ...d };
-  } catch (_) {}
-  return { maxLevel: 1, levelStars: {}, totalScore: 0 };
+  const local = (() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+      if (d) return { maxLevel: 1, levelStars: {}, totalScore: 0, ...d };
+    } catch (_) {}
+    return { maxLevel: 1, levelStars: {}, totalScore: 0 };
+  })();
+
+  if (typeof API !== 'undefined' && API.isLoggedIn && API.isLoggedIn()) {
+    API.bbq = {
+      getProgress() {
+        return fetch(`${BBQ_API_BASE}/progress`, {
+          headers: API._authHeader(),
+        }).then(r => r.json()).then(d => d.ok ? d.data : null).catch(() => null);
+      },
+      save(level, stars, score) {
+        return fetch(`${BBQ_API_BASE}/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...API._authHeader() },
+          body: JSON.stringify({ level, stars, score }),
+        }).then(r => r.json()).then(d => d.ok ? d.data : null).catch(() => null);
+      },
+    };
+    API.bbq.getProgress().then(cloud => {
+      if (cloud) {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(cloud));
+      }
+    });
+  }
+
+  return local;
 }
 
 function writeSave(d) {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(d)); } catch (_) {}
+  localStorage.setItem(SAVE_KEY, JSON.stringify(d));
+}
+
+async function syncToCloud(level, stars, score) {
+  if (typeof API !== 'undefined' && API.bbq && API.bbq.save) {
+    try {
+      await API.bbq.save(level, stars, score);
+    } catch (_) {}
+  }
 }
 
 // ==================== 游戏状态 ====================
@@ -198,6 +234,7 @@ const G = {
   orders:          [],
   orderIdCounter:  0,
   orderSpawnTimer: null,
+  lastRefilledSlots: [],   // 上次补充的槽位 [{grillId, slotIdx}]
 };
 
 // ==================== 外卖订单 ====================
@@ -307,6 +344,7 @@ function renderOrders() {
 // ==================== 渲染 ====================
 
 function renderAll() {
+  G.lastRefilledSlots = []; // 渲染后清除，避免动画残留
   renderGrid();
   renderProgress();
   renderTools();
@@ -346,7 +384,8 @@ function buildGrillUnit(g) {
 
   g.pan.forEach((item, slotIdx) => {
     const slot = document.createElement('div');
-    slot.className = 'pan-slot' + (item ? ' has' : ' empty-slot');
+    const isRefilled = G.lastRefilledSlots.some(r => r.grillId === g.id && r.slotIdx === slotIdx);
+    slot.className = 'pan-slot' + (item ? ' has' : ' empty-slot') + (isRefilled ? ' just-refilled' : '');
     slot.dataset.grillId = g.id;
     slot.dataset.slotIdx = slotIdx;
     if (item) {
@@ -634,11 +673,15 @@ function tryMoveTo(fromGrillId, fromSlotIdx, toGrillId) {
 function resolveBoard() {
   if (G.over || G.won) return;
 
+  // 收集本次补充的槽位信息，用于动画
+  G.lastRefilledSlots = [];
+
   // 0. 补充所有完全空的烤盘（拖空或消除后都触发）
   let didRefill = false;
   G.data.grills.forEach(g => {
     if (g.pan.every(s => s === null) && g.dish.length > 0) {
-      refillGrill(g.id);
+      const filled = refillGrill(g.id);
+      filled.forEach(slotIdx => G.lastRefilledSlots.push({ grillId: g.id, slotIdx }));
       didRefill = true;
     }
   });
@@ -649,7 +692,8 @@ function resolveBoard() {
   if (elimGrill !== null) {
     doEliminate(elimGrill, () => {
       // 消除后补充该烤盘，然后继续循环
-      refillGrill(elimGrill);
+      const filled = refillGrill(elimGrill);
+      filled.forEach(slotIdx => G.lastRefilledSlots.push({ grillId: elimGrill, slotIdx }));
       renderAll();
       renderProgress();
       resolveBoard();
@@ -669,20 +713,23 @@ function resolveBoard() {
   checkDeadlock();
 }
 
-/** 消除后从碟子栈取出一碟（3个食材）填满烤盘 */
+/** 消除后从碟子栈取出一碟（3个食材）填满烤盘，返回新填充的槽位索引 */
 function refillGrill(grillId) {
   const grill = G.data.grills[grillId];
-  if (grill.dish.length === 0) return; // 没有碟子了
+  if (grill.dish.length === 0) return []; // 没有碟子了
 
   // 取出最顶部的一碟（数组最后一个）
   const plate = grill.dish.pop();
   // 填入烤盘空位
+  const filledSlots = [];
   let pi = 0;
   for (let i = 0; i < PAN_CAPACITY && pi < plate.length; i++) {
     if (grill.pan[i] === null) {
       grill.pan[i] = plate[pi++];
+      filledSlots.push(i);
     }
   }
+  return filledSlots;
 }
 
 /** 查找第一个可消除的烤盘（3个相同食材）*/
@@ -747,13 +794,12 @@ function tryFulfillOrder() {
       }
 
       if (allFound) {
-        // 从烤盘取走订单食材
+        // 从烤盘取走订单食材（外卖小哥取走，没有顺序要求）
         for (const need of needed) {
           const si = grill.pan.findIndex(it => it && it.typeId === need);
           if (si !== -1) { grill.pan[si] = null; G.cleared++; }
         }
-        // 订单取走食材后，补充该烤盘
-        refillGrill(grill.id);
+        // 不在这里补充食材，让 resolveBoard 的自动补充流程处理
         // 完成订单
         o.items.forEach(it => { it.done = true; });
         clearInterval(o.handle);
@@ -1038,6 +1084,9 @@ function triggerWin() {
   if (G.level >= save.maxLevel) save.maxLevel = Math.min(50, G.level + 1);
   save.totalScore = (save.totalScore || 0) + G.score;
   writeSave(save);
+
+  // 异步同步到云端
+  syncToCloud(G.level, stars, G.score);
 
   // 庆祝粒子
   spawnConfetti();

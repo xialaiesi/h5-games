@@ -57,6 +57,17 @@
     patch:  (path, body, opts)    => request('PATCH',  path, body, opts),
     delete: (path, opts)          => request('DELETE', path, null, opts),
 
+    // 内部方法：获取认证头
+    _authHeader() {
+      const token = root.Auth && root.Auth.getToken();
+      return token ? { 'Authorization': 'Bearer ' + token } : {};
+    },
+
+    // 检查是否已登录
+    isLoggedIn() {
+      return !!(root.Auth && root.Auth.getToken());
+    },
+
     // ===== Auth 接口 =====
     auth: {
       register: (data) => request('POST', '/auth/register', data),

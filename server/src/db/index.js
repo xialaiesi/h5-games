@@ -51,13 +51,22 @@ function initDB() {
 function runMigrations() {
   const migrationsDir = path.join(__dirname, 'migrations')
   const files = fs.readdirSync(migrationsDir)
-    .filter(f => f.endsWith('.sql'))
+    .filter(f => f.endsWith('.sql') || f.endsWith('.sql.js'))
     .sort()
 
   for (const file of files) {
-    const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8')
-    db.exec(sql)
-    console.log(`[DB] Migration 执行完毕: ${file}`)
+    const fullPath = path.join(migrationsDir, file)
+    if (file.endsWith('.sql.js')) {
+      const migration = require(fullPath)
+      if (migration.up) {
+        migration.up()
+        console.log(`[DB] Migration 执行完毕: ${file}`)
+      }
+    } else {
+      const sql = fs.readFileSync(fullPath, 'utf-8')
+      db.exec(sql)
+      console.log(`[DB] Migration 执行完毕: ${file}`)
+    }
   }
 }
 

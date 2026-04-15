@@ -529,6 +529,18 @@ html, body {
 }
 .pan-slot.pop { animation: pop-out 0.45s ease forwards; }
 
+/* 食材到达烤盘时的放大动画 */
+@keyframes refill-pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  50%  { transform: scale(1.35); opacity: 1; }
+  70%  { transform: scale(0.9); }
+  85%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pan-slot.just-refilled {
+  animation: refill-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 /* ---- 碟子区域（下方）---- */
 .dish-area {
   display: flex;
@@ -908,6 +920,8 @@ html, body {
   </div>
 </div>
 
-<script src="game.js?v=44"></script>
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="game.js?v=45"></script>
 </body>
 </html>

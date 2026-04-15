@@ -59,6 +59,7 @@ app.use('/api/auth',        require('./routes/auth'))
 app.use('/api/users',       require('./routes/users'))
 app.use('/api/leaderboard', require('./routes/leaderboard'))
 app.use('/api/records',     require('./routes/records'))
+app.use('/api/bbq',         require('./routes/bbq'))
 
 // 静态文件（生产环境由 Nginx 处理，这里保留用于开发和简单部署）
 const staticDir = process.env.STATIC_DIR
