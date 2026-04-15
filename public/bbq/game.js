@@ -33,6 +33,12 @@ const PAN_CAPACITY = 3;
 const TOOL_INIT    = { undo: 3, shuffle: 1, remove: 1, addtime: 1 };
 const COMBO_TEXTS  = ['', '', 'Nice! 🔥', 'Great! 🔥🔥', 'Awesome! ⚡', 'COMBO! 🌟', 'MASTER! 👑'];
 const ORDER_UNLOCK_LEVEL = 11;
+const TOOL_LABELS = {
+  undo: '撤回',
+  shuffle: '洗牌',
+  remove: '清盘',
+  addtime: '加时',
+};
 
 // ==================== 工具函数 ====================
 
@@ -315,11 +321,20 @@ function addTimeToOrders(sec) {
   renderOrders();
 }
 
+function syncOrdersLayout() {
+  const area = document.getElementById('orders-area');
+  const gameArea = document.getElementById('game-area');
+  if (!area || !gameArea) return;
+
+  const shouldShow = G.level >= ORDER_UNLOCK_LEVEL && G.orders.length > 0;
+  area.style.display = shouldShow ? 'flex' : 'none';
+  const offset = shouldShow ? Math.ceil(area.getBoundingClientRect().height) + 8 : 0;
+  gameArea.style.setProperty('--orders-offset', `${offset}px`);
+}
 
 function renderOrders() {
   const area = document.getElementById('orders-area');
   if (!area) return;
-  area.style.display = G.level >= ORDER_UNLOCK_LEVEL ? 'flex' : 'none';
   area.innerHTML = '';
   G.orders.forEach(o => {
     const card = document.createElement('div');
@@ -340,6 +355,7 @@ function renderOrders() {
       <div id="order-timer-${o.id}" class="${timerClass}">${o.completed ? '✓' : o.timerSec + 's'}</div>`;
     area.appendChild(card);
   });
+  syncOrdersLayout();
 }
 
 // ==================== 渲染 ====================
@@ -479,7 +495,10 @@ function renderTools() {
     if (cEl) cEl.textContent = cnt;
     if (el) {
       el.classList.toggle('off', cnt <= 0);
+      el.disabled = cnt <= 0;
       if (k === 'remove') el.classList.toggle('active-mode', G.removeMode);
+      const modeSuffix = k === 'remove' && G.removeMode ? '，已开启' : '';
+      el.setAttribute('aria-label', `${TOOL_LABELS[k]}，剩余${cnt}次${modeSuffix}`);
     }
   });
 }
@@ -627,6 +646,7 @@ document.addEventListener('touchcancel', () => {
     dragState = null;
   }
 });
+window.addEventListener('resize', syncOrdersLayout);
 
 // ==================== 游戏逻辑 ====================
 
@@ -1190,11 +1210,14 @@ function renderHall() {
   const grid = document.getElementById('level-grid');
   grid.innerHTML = '';
   for (let lv = 1; lv <= 50; lv++) {
-    const btn = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.type = 'button';
     const stars = save.levelStars[lv] || 0;
     const isCompleted = stars > 0;
     const isUnlocked  = lv <= save.maxLevel;
     btn.className = 'level-btn ' + (isCompleted ? 'completed' : isUnlocked ? 'unlocked' : 'locked');
+    btn.disabled = !isUnlocked;
+    btn.setAttribute('aria-label', isUnlocked ? `进入第${lv}关` : `第${lv}关未解锁`);
     btn.innerHTML = `<span class="lv-num">${lv}</span>
       <span class="lv-star">${isCompleted ? '⭐'.repeat(stars) : isUnlocked ? '▶' : '🔒'}</span>`;
     if (isUnlocked) {
