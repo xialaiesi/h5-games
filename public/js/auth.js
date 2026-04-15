@@ -7,6 +7,7 @@
 
   const TOKEN_KEY = 'qiju_token';
   const USER_KEY  = 'qiju_user';
+  const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
   function readStorage(storage, key) {
     try {
@@ -31,10 +32,51 @@
     } catch (_) {}
   }
 
+  function readCookie(name) {
+    try {
+      const prefix = `${encodeURIComponent(name)}=`;
+      const parts = document.cookie ? document.cookie.split('; ') : [];
+      for (const part of parts) {
+        if (part.startsWith(prefix)) {
+          return decodeURIComponent(part.slice(prefix.length));
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function writeCookie(name, value, maxAgeSeconds) {
+    try {
+      const segments = [
+        `${encodeURIComponent(name)}=${encodeURIComponent(value)}`,
+        'Path=/',
+        'SameSite=Lax',
+      ];
+      if (typeof maxAgeSeconds === 'number') {
+        segments.push(`Max-Age=${maxAgeSeconds}`);
+      }
+      document.cookie = segments.join('; ');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function removeCookie(name) {
+    try {
+      document.cookie = `${encodeURIComponent(name)}=; Path=/; Max-Age=0; SameSite=Lax`;
+    } catch (_) {}
+  }
+
   const Auth = {
     // 获取 token（优先 localStorage，其次 sessionStorage）
     getToken() {
-      return readStorage(localStorage, TOKEN_KEY) || readStorage(sessionStorage, TOKEN_KEY) || null;
+      return (
+        readStorage(localStorage, TOKEN_KEY) ||
+        readStorage(sessionStorage, TOKEN_KEY) ||
+        readCookie(TOKEN_KEY) ||
+        null
+      );
     },
 
     // 存储 token 和用户信息
@@ -46,6 +88,8 @@
 
       writeStorage(sessionStorage, TOKEN_KEY, token);
       writeStorage(sessionStorage, USER_KEY, userText);
+      writeCookie(TOKEN_KEY, token, remember ? COOKIE_MAX_AGE : undefined);
+      writeCookie(USER_KEY, userText, remember ? COOKIE_MAX_AGE : undefined);
 
       if (remember) {
         writeStorage(localStorage, TOKEN_KEY, token);
@@ -56,7 +100,10 @@
     // 获取当前用户信息对象
     getUser() {
       try {
-        const raw = readStorage(localStorage, USER_KEY) || readStorage(sessionStorage, USER_KEY);
+        const raw =
+          readStorage(localStorage, USER_KEY) ||
+          readStorage(sessionStorage, USER_KEY) ||
+          readCookie(USER_KEY);
         return raw ? JSON.parse(raw) : null;
       } catch {
         return null;
@@ -74,6 +121,8 @@
       removeStorage(localStorage, USER_KEY);
       removeStorage(sessionStorage, TOKEN_KEY);
       removeStorage(sessionStorage, USER_KEY);
+      removeCookie(TOKEN_KEY);
+      removeCookie(USER_KEY);
     },
 
     // 更新本地存储的用户信息（如修改昵称后）
@@ -87,6 +136,9 @@
       }
       if (readStorage(localStorage, TOKEN_KEY)) {
         writeStorage(localStorage, USER_KEY, userText);
+      }
+      if (this.getToken()) {
+        writeCookie(USER_KEY, userText, readStorage(localStorage, TOKEN_KEY) ? COOKIE_MAX_AGE : undefined);
       }
       return updated;
     },
