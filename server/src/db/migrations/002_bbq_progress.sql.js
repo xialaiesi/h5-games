@@ -1,6 +1,6 @@
 'use strict'
 
-const { getDB } = require('../db')
+const { getDB } = require('..')
 
 /**
  * 用户烧烤游戏进度表

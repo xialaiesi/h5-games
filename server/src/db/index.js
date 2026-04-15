@@ -15,10 +15,12 @@ let db = null
 function initDB() {
   if (db) return db
 
-  // DB_PATH 若设置则相对于项目根目录（process.cwd()），默认也指向根目录 data/qiju.db
+  const projectRoot = path.resolve(__dirname, '../../..')
+
+  // DB_PATH 若设置则相对于项目根目录，默认也指向根目录 data/qiju.db
   const dbPath = process.env.DB_PATH
-    ? path.resolve(process.cwd(), process.env.DB_PATH)
-    : path.resolve(process.cwd(), 'data/qiju.db')
+    ? path.resolve(projectRoot, process.env.DB_PATH)
+    : path.resolve(projectRoot, 'data/qiju.db')
   const dbDir = path.dirname(dbPath)
 
   // 确保数据目录存在
