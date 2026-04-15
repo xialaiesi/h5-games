@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>中国象棋大厅 - 棋局</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/layout.css">
+<style>
+  .hall-section-title {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 16px 0 8px;
+  }
+
+  .hall-main-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    color: var(--color-gold);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .hall-main-btn:hover {
+    border-color: rgba(224,192,128,0.45);
+    background: rgba(224,192,128,0.06);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  }
+
+  .hall-main-btn:active { transform: scale(0.98); }
+
+  .hall-main-btn.primary {
+    background: linear-gradient(135deg, rgba(192,48,48,0.2), rgba(192,48,48,0.1));
+    border-color: rgba(192,48,48,0.45);
+    color: #ff8888;
+  }
+
+  .hall-main-btn .btn-icon { font-size: 22px; }
+
+  .offline-btn {
+    width: 100%;
+    padding: 11px;
+    font-size: 14px;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .offline-btn:hover { background: rgba(255,255,255,0.04); color: var(--color-text); }
+
+  .matching-modal-count {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--color-gold);
+    text-align: center;
+    margin: 16px 0;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/index.html" style="color:var(--color-text-muted);text-decoration:none;font-size:14px">
+      &#x2190; 返回
+    </a>
+    <span style="color:var(--color-gold);font-weight:700;letter-spacing:2px">中国象棋</span>
+    <span style="width:60px;text-align:right;font-size:12px;color:var(--color-text-muted)" id="ws-status"></span>
+  </div>
+</nav>
+
+<div class="hall-page">
+  <div class="hall-content">
+
+    <!-- 用户信息卡片 -->
+    <div class="hall-header-card" id="user-info-card">
+      <div class="hall-game-icon">&#x265A;</div>
+      <div class="hall-user-info">
+        <div class="hall-user-name" id="user-name">加载中...</div>
+        <div class="hall-user-rating">
+          <span id="user-rating">-- 分</span>
+          <span id="user-rank-badge"></span>
+        </div>
+      </div>
+      <div class="hall-online-count">
+        <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">
+          <span class="online-dot"></span>
+          <span id="online-count">--</span>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-dim);margin-top:2px">在线</div>
+      </div>
+    </div>
+
+    <!-- 在线对战 -->
+    <div class="hall-section-title">在线对战</div>
+    <div class="hall-btn-group">
+      <button class="hall-main-btn primary" id="btn-quick-match">
+        <span class="btn-icon">&#x26A1;</span>
+        快速匹配
+      </button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="hall-main-btn" id="btn-create-room">
+          <span class="btn-icon">&#x2795;</span>
+          创建房间
+        </button>
+        <button class="hall-main-btn" id="btn-join-room">
+          <span class="btn-icon">&#x1F511;</span>
+          加入房间
+        </button>
+      </div>
+    </div>
+
+    <!-- 单机模式 -->
+    <div class="hall-section-title">单机模式</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="offline-btn" id="btn-pvp">
+        <span>&#x1F91D;</span> 本地双人
+      </button>
+      <button class="offline-btn" id="btn-back">
+        <span>&#x1F4DC;</span> 规则说明
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- 快速匹配弹窗 -->
+<div class="modal-overlay" id="modal-matching">
+  <div class="modal-box" style="text-align:center">
+    <div class="modal-title">正在匹配中...</div>
+    <div style="margin:16px 0">
+      <div class="matching-dots">
+        <div class="matching-dot"></div>
+        <div class="matching-dot"></div>
+        <div class="matching-dot"></div>
+      </div>
+    </div>
+    <div class="modal-body" id="match-status-text">寻找对手中，请稍候</div>
+    <div class="matching-modal-count" id="match-timer">0</div>
+    <button class="btn btn-ghost btn-block" id="btn-cancel-match">取消匹配</button>
+  </div>
+</div>
+
+<!-- 创建房间弹窗 -->
+<div class="modal-overlay" id="modal-create-room">
+  <div class="modal-box" style="text-align:center">
+    <div class="modal-title">房间已创建</div>
+    <div class="modal-body">将邀请码发给好友，等待对方加入</div>
+    <div class="invite-code" id="invite-code-display">
+      <span class="invite-code-text" id="invite-code-text">------</span>
+    </div>
+    <button class="btn btn-outline btn-block" id="btn-copy-code" style="margin-bottom:10px">
+      复制邀请码
+    </button>
+    <div style="margin:8px 0;font-size:13px;color:var(--color-text-muted)" id="room-wait-status">
+      等待对手加入...
+    </div>
+    <button class="btn btn-ghost btn-block" id="btn-cancel-room">取消房间</button>
+  </div>
+</div>
+
+<!-- 加入房间弹窗 -->
+<div class="modal-overlay" id="modal-join-room">
+  <div class="modal-box">
+    <div class="modal-title">加入房间</div>
+    <div class="modal-body">请输入对方提供的6位邀请码</div>
+    <input type="text" class="form-input" id="join-code-input"
+      placeholder="例如：A1B2C3" maxlength="6"
+      style="text-align:center;font-size:22px;font-weight:700;letter-spacing:6px;text-transform:uppercase">
+    <div class="form-error" id="join-code-err" style="text-align:center;margin-top:6px"></div>
+    <div class="modal-footer" style="margin-top:16px">
+      <button class="btn btn-ghost flex-1" id="btn-cancel-join">取消</button>
+      <button class="btn btn-gold flex-1" id="btn-confirm-join">加入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 规则说明弹窗 -->
+<div class="modal-overlay" id="modal-rules">
+  <div class="modal-box">
+    <button class="modal-close" id="btn-close-rules">&#x2715;</button>
+    <div class="modal-title">象棋规则简介</div>
+    <div style="font-size:13px;color:var(--color-text-muted);line-height:1.9;max-height:60vh;overflow-y:auto">
+      <p><strong style="color:var(--color-gold)">目标：</strong>将死对方的将（帅）</p>
+      <p><strong style="color:var(--color-gold)">将帅：</strong>走一格，在九宫格内，不能面对面（飞将）</p>
+      <p><strong style="color:var(--color-gold)">仕士：</strong>斜走一格，在九宫格内</p>
+      <p><strong style="color:var(--color-gold)">相象：</strong>走田字，不能过河，不能蹩脚</p>
+      <p><strong style="color:var(--color-gold)">马：</strong>走日字，不能蹩马腿</p>
+      <p><strong style="color:var(--color-gold)">车：</strong>横竖走，不限步数</p>
+      <p><strong style="color:var(--color-gold)">炮：</strong>移动同车；吃子须翻过一个棋子（炮架）</p>
+      <p><strong style="color:var(--color-gold)">兵卒：</strong>前进一格；过河后可横走</p>
+    </div>
+    <button class="btn btn-outline btn-block" style="margin-top:16px" id="btn-close-rules-btn">我知道了</button>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/ws.js"></script>
+<script src="/js/ui.js"></script>
+<script src="hall.js"></script>
+</body>
+</html>

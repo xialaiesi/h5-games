@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>棋局 - H5 在线棋牌平台</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/layout.css">
+<style>
+  /* 首页专属样式 */
+  .home-hero {
+    padding: 24px 0 8px;
+    text-align: center;
+  }
+
+  .home-hero-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--color-gold);
+    letter-spacing: 8px;
+    margin-bottom: 4px;
+  }
+
+  .home-hero-sub {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    letter-spacing: 2px;
+  }
+
+  /* 用户状态条 */
+  .user-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+
+  .user-status-bar.logged {
+    color: var(--color-text);
+  }
+
+  .user-status-name {
+    font-weight: 600;
+    color: var(--color-gold);
+    font-size: 15px;
+  }
+
+  .user-status-rating {
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+
+  /* 排行榜选项卡 */
+  .leaderboard-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .lb-tab {
+    padding: 5px 16px;
+    border-radius: var(--border-radius-full);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    user-select: none;
+  }
+
+  .lb-tab.active {
+    background: var(--color-gold-dim);
+    color: var(--color-gold);
+    border-color: rgba(224,192,128,0.4);
+  }
+
+  .lb-panel { display: none; }
+  .lb-panel.active { display: block; }
+
+  /* 底部导航 */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15,15,26,0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    z-index: 50;
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 0;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+  }
+
+  .bottom-nav-item.active { color: var(--color-gold); }
+
+  .bottom-nav-icon { font-size: 22px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-logo">棋局<span>QiJu</span></div>
+    <div class="navbar-actions" id="nav-actions">
+      <!-- 动态渲染：登录/注册 或 用户名+退出 -->
+    </div>
+  </div>
+</nav>
+
+<!-- 主内容 -->
+<div class="page">
+  <div class="page-content">
+
+    <!-- Hero 标题 -->
+    <div class="home-hero">
+      <div class="home-hero-title">棋 局</div>
+      <div class="home-hero-sub">在线棋牌 · 随时对弈</div>
+    </div>
+
+    <!-- 用户状态条（登录后显示） -->
+    <div class="user-status-bar" id="user-status-bar" style="display:none">
+      <span class="online-dot"></span>
+      <span id="status-name" class="user-status-name"></span>
+      <span id="status-rank"></span>
+      <span style="flex:1"></span>
+      <span id="status-rating" class="user-status-rating"></span>
+    </div>
+
+    <!-- 游戏入口 -->
+    <div class="home-section">
+      <div class="section-title">选择游戏</div>
+      <div class="game-cards">
+        <!-- 五子棋 -->
+        <div class="game-card card-clickable" id="card-gomoku">
+          <div class="game-card-icon">&#x26AB;</div>
+          <div class="game-card-name">五子棋</div>
+          <div class="game-card-online">
+            <span class="online-dot"></span>
+            <span id="online-gomoku">-- 在线</span>
+          </div>
+        </div>
+
+        <!-- 中国象棋 -->
+        <div class="game-card card-clickable" id="card-chess">
+          <div class="game-card-icon">&#x265A;</div>
+          <div class="game-card-name">象棋</div>
+          <div class="game-card-online">
+            <span class="online-dot"></span>
+            <span id="online-chess">-- 在线</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 排行榜 -->
+    <div class="home-section">
+      <div class="section-title">排行榜</div>
+      <div class="leaderboard-tabs">
+        <div class="lb-tab active" data-tab="gomoku">五子棋</div>
+        <div class="lb-tab" data-tab="chess">中国象棋</div>
+      </div>
+
+      <div class="card" style="padding: 16px 20px;">
+        <div class="lb-panel active" id="lb-gomoku">
+          <div id="lb-gomoku-list">
+            <!-- 加载中占位 -->
+            <div class="rank-item">
+              <div class="rank-num skeleton" style="width:20px;height:16px;"></div>
+              <div class="rank-nickname skeleton" style="height:16px;width:80px;"></div>
+              <div class="rank-score skeleton" style="height:16px;width:40px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="lb-panel" id="lb-chess">
+          <div id="lb-chess-list">
+            <div class="rank-item">
+              <div class="rank-num skeleton" style="width:20px;height:16px;"></div>
+              <div class="rank-nickname skeleton" style="height:16px;width:80px;"></div>
+              <div class="rank-score skeleton" style="height:16px;width:40px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /page -->
+
+<!-- 底部导航 -->
+<nav class="bottom-nav">
+  <a class="bottom-nav-item active" href="/index.html">
+    <span class="bottom-nav-icon">&#x1F3E0;</span>
+    <span>大厅</span>
+  </a>
+  <a class="bottom-nav-item" href="/profile.html" id="nav-profile-link">
+    <span class="bottom-nav-icon">&#x1F464;</span>
+    <span>我的</span>
+  </a>
+</nav>
+
+<script src="/js/auth.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ===== 导航栏渲染 =====
+  function renderNav() {
+    const actionsEl = document.getElementById('nav-actions');
+    if (Auth.isLoggedIn()) {
+      const user = Auth.getUser();
+      actionsEl.innerHTML = `
+        <span style="font-size:13px;color:var(--color-text-muted);">${user ? user.nickname : ''}</span>
+        <button class="btn btn-ghost btn-sm" id="btn-logout">退出</button>
+      `;
+      document.getElementById('btn-logout').addEventListener('click', handleLogout);
+    } else {
+      actionsEl.innerHTML = `
+        <a href="/login.html" class="btn btn-outline btn-sm">登录</a>
+        <a href="/login.html?tab=register" class="btn btn-gold btn-sm">注册</a>
+      `;
+    }
+  }
+
+  // ===== 用户状态条 =====
+  function renderUserStatus() {
+    if (!Auth.isLoggedIn()) return;
+    const user = Auth.getUser();
+    if (!user) return;
+
+    const bar = document.getElementById('user-status-bar');
+    bar.style.display = 'flex';
+    document.getElementById('status-name').textContent = user.nickname;
+
+    // 尝试从 API 获取最新积分（可失败）
+    API.users.me().then(data => {
+      const rating = (data.stats && data.stats.gomoku && data.stats.gomoku.rating) || 1000;
+      const info = UI.getRankInfo(rating);
+      document.getElementById('status-rank').innerHTML = UI.rankBadgeHTML(rating);
+      document.getElementById('status-rating').textContent = rating + ' 分';
+      Auth.updateUser({ stats: data.stats });
+    }).catch(() => {
+      document.getElementById('status-rating').textContent = '';
+    });
+  }
+
+  // ===== 退出登录 =====
+  async function handleLogout() {
+    try {
+      await API.auth.logout();
+    } catch (_) {}
+    Auth.clearAuth();
+    location.reload();
+  }
+
+  // ===== 游戏入口点击 =====
+  function bindGameCards() {
+    document.getElementById('card-gomoku').addEventListener('click', () => {
+      location.href = '/gomoku/hall.html';
+    });
+    document.getElementById('card-chess').addEventListener('click', () => {
+      location.href = '/chinese-chess/hall.html';
+    });
+  }
+
+  // ===== 排行榜 =====
+  function renderRankList(containerId, list) {
+    const el = document.getElementById(containerId);
+    if (!list || list.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:16px 0;font-size:13px;">暂无数据</div>';
+      return;
+    }
+
+    el.innerHTML = list.map((item, i) => {
+      const n = i + 1;
+      const cls = n <= 3 ? ` top-${n}` : '';
+      const info = UI.getRankInfo(item.rating);
+      return `
+        <div class="rank-item">
+          <div class="rank-num${cls}">${n <= 3 ? ['&#x1F947;','&#x1F948;','&#x1F949;'][i] : n}</div>
+          <div class="rank-nickname">${escHtml(item.nickname)}</div>
+          <span class="rank-badge ${info.cls}" style="margin-left:4px">${info.name}</span>
+          <div class="rank-score">${item.rating}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadLeaderboards() {
+    try {
+      const [gomokuData, chessData] = await Promise.all([
+        API.leaderboard.get('gomoku', 5),
+        API.leaderboard.get('chinese-chess', 5),
+      ]);
+      renderRankList('lb-gomoku-list', gomokuData.list || gomokuData);
+      renderRankList('lb-chess-list',  chessData.list  || chessData);
+    } catch (_) {
+      document.getElementById('lb-gomoku-list').innerHTML =
+        '<div style="text-align:center;color:var(--color-text-muted);padding:16px 0;font-size:13px;">加载失败</div>';
+      document.getElementById('lb-chess-list').innerHTML =
+        '<div style="text-align:center;color:var(--color-text-muted);padding:16px 0;font-size:13px;">加载失败</div>';
+    }
+  }
+
+  // ===== 排行榜 Tab 切换 =====
+  function bindLeaderboardTabs() {
+    document.querySelectorAll('.lb-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.lb-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const panelId = 'lb-' + (tab.dataset.tab === 'chess' ? 'chess' : 'gomoku');
+        document.getElementById(panelId).classList.add('active');
+      });
+    });
+  }
+
+  // ===== 在线人数（WebSocket 推送，这里用 API 轮询做兜底） =====
+  function loadOnlineCounts() {
+    // 由于在线人数由 WS 推送，这里仅做展示占位
+    // 实际数字由 WS 连接后服务器推送更新
+    document.getElementById('online-gomoku').textContent = '在线';
+    document.getElementById('online-chess').textContent  = '在线';
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ===== 初始化 =====
+  function init() {
+    renderNav();
+    renderUserStatus();
+    bindGameCards();
+    bindLeaderboardTabs();
+    loadOnlineCounts();
+    loadLeaderboards();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

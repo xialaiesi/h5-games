@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>个人中心 - 棋局</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/layout.css">
+<style>
+  .game-stats-title {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .game-stats-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: var(--color-gold);
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .records-list {
+    max-height: 360px;
+    overflow-y: auto;
+  }
+
+  .nickname-edit {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* 底部导航 */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15,15,26,0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    z-index: 50;
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 0;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+  }
+
+  .bottom-nav-item.active { color: var(--color-gold); }
+  .bottom-nav-icon { font-size: 22px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/index.html" class="navbar-logo" style="text-decoration:none">棋局</a>
+    <div class="navbar-actions">
+      <button class="btn btn-ghost btn-sm" id="btn-logout">退出登录</button>
+    </div>
+  </div>
+</nav>
+
+<!-- 个人信息头部 -->
+<div class="profile-header" id="profile-header">
+  <div class="profile-avatar" id="profile-avatar">&#x1F464;</div>
+  <div class="profile-nickname" id="profile-nickname">
+    <span class="skeleton" style="width:100px;height:20px;display:inline-block"></span>
+  </div>
+  <div class="profile-email" id="profile-email"></div>
+  <div id="profile-rank" style="margin-bottom:6px"></div>
+  <div class="profile-since" id="profile-since"></div>
+
+  <!-- 昵称修改 -->
+  <div class="nickname-edit">
+    <input type="text" class="form-input" id="nickname-input" placeholder="修改昵称" maxlength="12" style="font-size:14px;padding:8px 12px">
+    <button class="btn btn-outline btn-sm" id="btn-save-nick">保存</button>
+  </div>
+</div>
+
+<!-- 主内容 -->
+<div class="page">
+  <div class="page-content">
+
+    <!-- 五子棋战绩 -->
+    <div class="home-section">
+      <div class="game-stats-title">&#x26AB; 五子棋战绩</div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span id="gomoku-rating-text" class="text-gold" style="font-size:20px;font-weight:700">--</span>
+          <span id="gomoku-rank-badge"></span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-cell">
+            <div class="stat-cell-value text-success" id="gomoku-win">-</div>
+            <div class="stat-cell-label">胜</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-value text-danger" id="gomoku-lose">-</div>
+            <div class="stat-cell-label">负</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-value" id="gomoku-draw">-</div>
+            <div class="stat-cell-label">平</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中国象棋战绩 -->
+    <div class="home-section">
+      <div class="game-stats-title">&#x265A; 中国象棋战绩</div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span id="chess-rating-text" class="text-gold" style="font-size:20px;font-weight:700">--</span>
+          <span id="chess-rank-badge"></span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-cell">
+            <div class="stat-cell-value text-success" id="chess-win">-</div>
+            <div class="stat-cell-label">胜</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-value text-danger" id="chess-lose">-</div>
+            <div class="stat-cell-label">负</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-value" id="chess-draw">-</div>
+            <div class="stat-cell-label">平</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最近对局记录 -->
+    <div class="home-section">
+      <div class="game-stats-title">&#x1F4CB; 最近对局</div>
+      <div class="card" style="padding:12px 16px">
+        <div class="records-list" id="records-list">
+          <div style="text-align:center;color:var(--color-text-muted);padding:20px 0;font-size:13px">
+            加载中...
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav">
+  <a class="bottom-nav-item" href="/index.html">
+    <span class="bottom-nav-icon">&#x1F3E0;</span>
+    <span>大厅</span>
+  </a>
+  <a class="bottom-nav-item active" href="/profile.html">
+    <span class="bottom-nav-icon">&#x1F464;</span>
+    <span>我的</span>
+  </a>
+</nav>
+
+<script src="/js/auth.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // 未登录跳转
+  if (!Auth.requireAuth()) return;
+
+  const user = Auth.getUser();
+
+  // ===== 退出登录 =====
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    const ok = await UI.confirm({
+      title: '退出登录',
+      message: '确认退出登录吗？',
+      confirmText: '退出',
+      cancelText: '取消',
+      danger: true,
+    });
+    if (!ok) return;
+    try { await API.auth.logout(); } catch (_) {}
+    Auth.clearAuth();
+    location.href = '/login.html';
+  });
+
+  // ===== 渲染基础信息 =====
+  function renderBasicInfo(data) {
+    const nickname = data.nickname || '未知用户';
+    document.getElementById('profile-nickname').textContent = nickname;
+    document.getElementById('profile-email').textContent    = data.email || '';
+    document.getElementById('profile-since').textContent   =
+      data.createdAt ? '注册于 ' + UI.formatDate(data.createdAt) : '';
+    document.getElementById('nickname-input').value = nickname;
+
+    // 头像用昵称首字
+    const char = nickname.charAt(0).toUpperCase();
+    document.getElementById('profile-avatar').textContent = char;
+  }
+
+  // ===== 渲染战绩 =====
+  function renderStats(stats) {
+    if (!stats) return;
+
+    function fill(prefix, s) {
+      if (!s) return;
+      const info = UI.getRankInfo(s.rating || 1000);
+      document.getElementById(prefix + '-rating-text').textContent = (s.rating || 1000) + ' 分';
+      document.getElementById(prefix + '-rank-badge').innerHTML = UI.rankBadgeHTML(s.rating || 1000);
+      document.getElementById(prefix + '-win').textContent  = s.wins  || 0;
+      document.getElementById(prefix + '-lose').textContent = s.losses || 0;
+      document.getElementById(prefix + '-draw').textContent = s.draws || 0;
+
+      // 根据最高分更新个人段位徽章
+      return info;
+    }
+
+    const gomokuInfo = fill('gomoku', stats.gomoku);
+    const chessInfo  = fill('chess',  stats['chinese-chess'] || stats.chess);
+
+    // 个人主页段位用五子棋积分
+    const primaryInfo = gomokuInfo || (stats.gomoku ? UI.getRankInfo(stats.gomoku.rating || 1000) : null);
+    if (primaryInfo) {
+      document.getElementById('profile-rank').innerHTML = UI.rankBadgeHTML(
+        stats.gomoku ? stats.gomoku.rating : 1000
+      );
+    }
+  }
+
+  // ===== 渲染对局记录 =====
+  function renderRecords(records) {
+    const el = document.getElementById('records-list');
+    if (!records || records.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:20px 0;font-size:13px">暂无对局记录</div>';
+      return;
+    }
+
+    el.innerHTML = records.slice(0, 20).map(r => {
+      const result  = r.result === 'win' ? 'win' : r.result === 'lose' ? 'lose' : 'draw';
+      const resText = result === 'win' ? '胜' : result === 'lose' ? '负' : '平';
+      const delta   = r.ratingDelta || 0;
+      const deltaStr = delta === 0 ? '±0' : (delta > 0 ? '+' + delta : String(delta));
+      const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+      const gameText = r.gameType === 'gomoku' ? '五子棋' : '象棋';
+
+      return `
+        <div class="match-record">
+          <div class="match-result ${result}">${resText}</div>
+          <div class="match-info">
+            <div class="match-opponent">${escHtml(r.opponentNickname || '对手')}</div>
+            <div class="match-meta">${gameText} · ${UI.formatTime(r.endedAt || r.createdAt)}</div>
+          </div>
+          <div class="match-delta ${deltaCls}">${deltaStr}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ===== 修改昵称 =====
+  document.getElementById('btn-save-nick').addEventListener('click', async () => {
+    const nickname = document.getElementById('nickname-input').value.trim();
+    if (!nickname || nickname.length < 2) {
+      UI.toast('昵称至少2个字符', 'warning'); return;
+    }
+    if (nickname.length > 12) {
+      UI.toast('昵称最多12个字符', 'warning'); return;
+    }
+
+    const btn = document.getElementById('btn-save-nick');
+    btn.disabled = true;
+    try {
+      const res = await API.users.updateMe({ nickname });
+      Auth.updateUser({ nickname: res.nickname || nickname });
+      document.getElementById('profile-nickname').textContent = res.nickname || nickname;
+      document.getElementById('profile-avatar').textContent = (res.nickname || nickname).charAt(0).toUpperCase();
+      UI.toast('昵称已更新', 'success');
+    } catch (err) {
+      UI.toast(err.message || '保存失败', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ===== 加载数据 =====
+  async function loadProfile() {
+    try {
+      UI.showLoading('加载中...');
+      const userId = user && user.sub ? user.sub : 'me';
+
+      const [meData, recordsData] = await Promise.all([
+        API.users.me(),
+        API.users.getRecords('me', { limit: 20 }).catch(() => ({ list: [] })),
+      ]);
+
+      renderBasicInfo(meData);
+      renderStats(meData.stats);
+      renderRecords(recordsData.list || recordsData || []);
+    } catch (err) {
+      UI.toast('加载失败：' + (err.message || '请重试'), 'error');
+      // 降级：使用本地缓存
+      if (user) renderBasicInfo(user);
+    } finally {
+      UI.hideLoading();
+    }
+  }
+
+  loadProfile();
+})();
+</script>
+</body>
+</html>

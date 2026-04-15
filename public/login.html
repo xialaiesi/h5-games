@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>登录 / 注册 - 棋局</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/layout.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="auth-logo-text">棋 局</div>
+      <div class="auth-logo-subtitle">在线棋牌 · 随时对弈</div>
+    </div>
+
+    <!-- Tab 切换 -->
+    <div class="tab-bar" style="margin-bottom:24px">
+      <div class="tab-item active" id="tab-login" data-tab="login">登录</div>
+      <div class="tab-item" id="tab-register" data-tab="register">注册</div>
+    </div>
+
+    <!-- 登录表单 -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">邮箱</label>
+        <input type="email" class="form-input" id="login-email" placeholder="请输入邮箱" autocomplete="email">
+        <div class="form-error" id="login-email-err"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">密码</label>
+        <input type="password" class="form-input" id="login-password" placeholder="请输入密码" autocomplete="current-password">
+        <div class="form-error" id="login-password-err"></div>
+      </div>
+      <div class="form-group" style="flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-muted);cursor:pointer">
+          <input type="checkbox" id="login-remember" checked style="accent-color:var(--color-gold)">
+          记住登录
+        </label>
+      </div>
+      <div class="form-error" id="login-global-err" style="margin-bottom:12px;text-align:center"></div>
+      <button class="btn btn-gold btn-block btn-lg" id="btn-login">登 录</button>
+    </div>
+
+    <!-- 注册表单 -->
+    <div id="form-register" class="hidden">
+      <div class="form-group">
+        <label class="form-label">邮箱</label>
+        <input type="email" class="form-input" id="reg-email" placeholder="请输入邮箱" autocomplete="email">
+        <div class="form-error" id="reg-email-err"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">密码 <span class="text-muted text-sm">（至少6位）</span></label>
+        <input type="password" class="form-input" id="reg-password" placeholder="请输入密码" autocomplete="new-password">
+        <div class="form-error" id="reg-password-err"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">确认密码</label>
+        <input type="password" class="form-input" id="reg-confirm" placeholder="再次输入密码" autocomplete="new-password">
+        <div class="form-error" id="reg-confirm-err"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">昵称 <span class="text-muted text-sm">（2~12字符）</span></label>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="form-input" id="reg-nickname" placeholder="你的昵称" maxlength="12" autocomplete="nickname" style="flex:1">
+          <button class="btn btn-ghost btn-sm" id="btn-random-nick" type="button" style="white-space:nowrap;flex-shrink:0">随机</button>
+        </div>
+        <div class="form-error" id="reg-nickname-err"></div>
+      </div>
+      <div class="form-error" id="reg-global-err" style="margin-bottom:12px;text-align:center"></div>
+      <button class="btn btn-gold btn-block btn-lg" id="btn-register">注 册</button>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--color-text-muted)">
+      <a href="/index.html" style="color:var(--color-text-muted)">返回首页</a>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // 已登录直接跳转
+  if (Auth.redirectIfLoggedIn()) return;
+
+  // 判断初始 tab
+  const urlParams = new URLSearchParams(location.search);
+  const initTab   = urlParams.get('tab') === 'register' ? 'register' : 'login';
+
+  // ===== Tab 切换 =====
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    document.getElementById('form-login').classList.toggle('hidden', tabName !== 'login');
+    document.getElementById('form-register').classList.toggle('hidden', tabName !== 'register');
+    clearErrors();
+  }
+
+  document.querySelectorAll('.tab-item').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  switchTab(initTab);
+
+  // ===== 校验工具 =====
+  function setError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = msg;
+      const inputId = id.replace('-err', '');
+      const input   = document.getElementById(inputId);
+      if (input) input.classList.toggle('error', !!msg);
+    }
+  }
+
+  function clearErrors() {
+    ['login-email-err','login-password-err','login-global-err',
+     'reg-email-err','reg-password-err','reg-confirm-err','reg-nickname-err','reg-global-err'
+    ].forEach(id => setError(id, ''));
+  }
+
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // ===== 登录 =====
+  document.getElementById('btn-login').addEventListener('click', handleLogin);
+  document.getElementById('login-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  async function handleLogin() {
+    clearErrors();
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const remember = document.getElementById('login-remember').checked;
+
+    let valid = true;
+    if (!email) {
+      setError('login-email-err', '请输入邮箱');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      setError('login-email-err', '邮箱格式不正确');
+      valid = false;
+    }
+    if (!password) {
+      setError('login-password-err', '请输入密码');
+      valid = false;
+    }
+    if (!valid) return;
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true;
+    btn.textContent = '登录中...';
+
+    try {
+      const res = await API.auth.login({ email, password });
+      Auth.setAuth(res.token, res.user, remember);
+      location.href = Auth.getRedirectUrl('/index.html');
+    } catch (err) {
+      setError('login-global-err', err.message || '登录失败，请重试');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '登 录';
+    }
+  }
+
+  // ===== 注册 =====
+  // 默认随机昵称
+  document.getElementById('reg-nickname').value = UI.randomNickname();
+
+  document.getElementById('btn-random-nick').addEventListener('click', () => {
+    document.getElementById('reg-nickname').value = UI.randomNickname();
+  });
+
+  document.getElementById('btn-register').addEventListener('click', handleRegister);
+  document.getElementById('reg-confirm').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleRegister();
+  });
+
+  async function handleRegister() {
+    clearErrors();
+    const email    = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm  = document.getElementById('reg-confirm').value;
+    const nickname = document.getElementById('reg-nickname').value.trim();
+
+    let valid = true;
+
+    if (!email) {
+      setError('reg-email-err', '请输入邮箱');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      setError('reg-email-err', '邮箱格式不正确');
+      valid = false;
+    }
+
+    if (!password) {
+      setError('reg-password-err', '请输入密码');
+      valid = false;
+    } else if (password.length < 6) {
+      setError('reg-password-err', '密码至少需要6位');
+      valid = false;
+    }
+
+    if (!confirm) {
+      setError('reg-confirm-err', '请再次输入密码');
+      valid = false;
+    } else if (confirm !== password) {
+      setError('reg-confirm-err', '两次密码不一致');
+      valid = false;
+    }
+
+    if (!nickname) {
+      setError('reg-nickname-err', '请输入昵称');
+      valid = false;
+    } else if (nickname.length < 2) {
+      setError('reg-nickname-err', '昵称至少2个字符');
+      valid = false;
+    } else if (nickname.length > 12) {
+      setError('reg-nickname-err', '昵称最多12个字符');
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById('btn-register');
+    btn.disabled = true;
+    btn.textContent = '注册中...';
+
+    try {
+      const res = await API.auth.register({ email, password, nickname });
+      Auth.setAuth(res.token, res.user, true);
+      UI.toast('注册成功，欢迎加入棋局！', 'success');
+      setTimeout(() => {
+        location.href = Auth.getRedirectUrl('/index.html');
+      }, 800);
+    } catch (err) {
+      setError('reg-global-err', err.message || '注册失败，请重试');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '注 册';
+    }
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+/* ==================== layout.css ====================
+   页面布局、Flex 工具类、间距工具类
+   移动端优先，max-width: 480px
+================================================== */
+
+/* ===== 页面容器 ===== */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 16px 16px 80px;
+}
+
+/* 固定底部的页面（游戏大厅） */
+.page-center {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* ===== 主导航占位 ===== */
+.navbar-spacer {
+  height: var(--nav-height);
+}
+
+/* ===== 登录/注册页布局 ===== */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: var(--max-width);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 32px 24px;
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-logo-text {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--color-gold);
+  letter-spacing: 6px;
+}
+
+.auth-logo-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+
+/* ===== 个人中心布局 ===== */
+.profile-header {
+  padding: 24px 16px 20px;
+  background: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a3a6e, #1a2a5e);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 12px;
+  color: var(--color-gold);
+}
+
+.profile-nickname {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.profile-since {
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+/* ===== 首页布局 ===== */
+.home-section {
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ===== 游戏入口卡片 ===== */
+.game-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.game-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 20px 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.game-card:hover {
+  border-color: rgba(224, 192, 128, 0.4);
+  background: rgba(224, 192, 128, 0.04);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+}
+
+.game-card:active { transform: scale(0.97); }
+
+.game-card-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.game-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gold);
+  letter-spacing: 2px;
+}
+
+.game-card-online {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===== 大厅布局 ===== */
+.hall-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hall-content {
+  flex: 1;
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.hall-header-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hall-game-icon {
+  font-size: 48px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.hall-user-info {
+  flex: 1;
+}
+
+.hall-user-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.hall-user-rating {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hall-online-count {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.hall-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.hall-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ===== 对局页布局 ===== */
+.game-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  align-items: center;
+}
+
+.game-top-bar {
+  width: 100%;
+  max-width: var(--max-width);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-board-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+}
+
+.game-bottom-area {
+  width: 100%;
+  max-width: var(--max-width);
+  padding: 8px 12px 16px;
+}
+
+.game-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* ===== Flex 工具 ===== */
+.flex           { display: flex; }
+.flex-col       { flex-direction: column; }
+.flex-wrap      { flex-wrap: wrap; }
+.items-start    { align-items: flex-start; }
+.items-center   { align-items: center; }
+.items-end      { align-items: flex-end; }
+.justify-start  { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end    { justify-content: flex-end; }
+.justify-between{ justify-content: space-between; }
+.flex-1         { flex: 1; }
+.flex-shrink-0  { flex-shrink: 0; }
+
+/* ===== 间距工具 ===== */
+.gap-4  { gap: 4px;  }
+.gap-6  { gap: 6px;  }
+.gap-8  { gap: 8px;  }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.gap-24 { gap: 24px; }
+
+.mt-4  { margin-top: 4px;  }
+.mt-6  { margin-top: 6px;  }
+.mt-8  { margin-top: 8px;  }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+
+.mb-4  { margin-bottom: 4px;  }
+.mb-8  { margin-bottom: 8px;  }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-20 { padding: 20px; }
+.px-16 { padding-left: 16px; padding-right: 16px; }
+.py-8  { padding-top: 8px;  padding-bottom: 8px; }
+.py-12 { padding-top: 12px; padding-bottom: 12px; }
+
+/* ===== 媒体查询（大屏微调） ===== */
+@media (min-width: 520px) {
+  .page-content { padding-top: 24px; }
+  .auth-box     { padding: 40px 36px; }
+}
