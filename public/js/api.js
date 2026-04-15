@@ -26,21 +26,26 @@
       throw new Error('网络连接失败，请检查网络');
     }
 
-    // 401 自动清除登录态
-    if (res.status === 401 && token) {
-      if (root.Auth) root.Auth.clearAuth();
-      // 不在登录页时跳转
-      if (!location.pathname.includes('/login.html')) {
-        location.href = '/login.html';
-      }
-      throw new Error('登录已过期，请重新登录');
-    }
-
     let payload;
     try {
       payload = await res.json();
     } catch {
       payload = {};
+    }
+
+    const errorCode = (payload && payload.error && payload.error.code) || payload.code || '';
+
+    // 401 自动清除登录态，仅限 token 失效场景
+    if (
+      res.status === 401 &&
+      token &&
+      ['MISSING_TOKEN', 'TOKEN_EXPIRED', 'INVALID_TOKEN', 'TOKEN_REVOKED'].includes(errorCode)
+    ) {
+      if (root.Auth) root.Auth.clearAuth();
+      if (!location.pathname.includes('/login.html')) {
+        location.href = '/login.html';
+      }
+      throw new Error('登录已过期，请重新登录');
     }
 
     if (!res.ok) {
@@ -50,7 +55,7 @@
         payload.error ||
         `请求失败(${res.status})`;
       const err = new Error(message);
-      err.code = (payload && payload.error && payload.error.code) || payload.code || 'REQUEST_FAILED';
+      err.code = errorCode || 'REQUEST_FAILED';
       throw err;
     }
 
@@ -79,6 +84,8 @@
     auth: {
       register: (data) => request('POST', '/auth/register', data),
       login:    (data) => request('POST', '/auth/login',    data),
+      resetPassword: (data) => request('POST', '/auth/reset-password', data),
+      changePassword: (data) => request('POST', '/auth/change-password', data),
       logout:   ()     => request('POST', '/auth/logout',   {}),
       refresh:  ()     => request('POST', '/auth/refresh',  {}),
     },

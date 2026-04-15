@@ -103,6 +103,19 @@ class UserModel {
   }
 
   /**
+   * 更新用户密码
+   * @param {string} id
+   * @param {string} passwordHash
+   * @returns {object|null}
+   */
+  updatePassword(id, passwordHash) {
+    const now = new Date().toISOString()
+    getDB().prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?')
+      .run(passwordHash, now, id)
+    return this.findById(id)
+  }
+
+  /**
    * 查询用户的所有游戏战绩
    * @param {string} userId
    * @returns {object} { gomoku: {...}, 'chinese-chess': {...} }

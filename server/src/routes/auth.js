@@ -47,6 +47,50 @@ router.post('/login', authLimiter, async (req, res, next) => {
 })
 
 /**
+ * POST /api/auth/reset-password
+ * 通过手机号重置密码
+ */
+router.post('/reset-password', authLimiter, async (req, res, next) => {
+  try {
+    const { phone, password } = req.body
+    const result = await AuthService.resetPassword({ phone, password })
+    res.json({ ok: true, data: result })
+  } catch (err) {
+    if (err.code) {
+      return res.status(err.code === 'PHONE_NOT_FOUND' ? 404 : 400).json({
+        ok: false,
+        error: { code: err.code, message: err.message },
+      })
+    }
+    next(err)
+  }
+})
+
+/**
+ * POST /api/auth/change-password
+ * 当前登录用户修改密码
+ */
+router.post('/change-password', verifyToken, authLimiter, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+    const result = await AuthService.changePassword({
+      userId: req.user.userId,
+      currentPassword,
+      newPassword,
+    })
+    res.json({ ok: true, data: result })
+  } catch (err) {
+    if (err.code) {
+      return res.status(400).json({
+        ok: false,
+        error: { code: err.code, message: err.message },
+      })
+    }
+    next(err)
+  }
+})
+
+/**
  * POST /api/auth/refresh
  * 刷新 Token（携带旧 token）
  */

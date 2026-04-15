@@ -42,6 +42,20 @@
     margin-right: auto;
   }
 
+  .password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .password-form .form-input {
+    font-size: 14px;
+  }
+
+  .password-form .btn {
+    margin-top: 4px;
+  }
+
   /* 底部导航 */
   .bottom-nav {
     position: fixed;
@@ -178,6 +192,19 @@
             <div class="stat-cell-value" id="bbq-stars">0</div>
             <div class="stat-cell-label">已得星数</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 密码设置 -->
+    <div class="home-section">
+      <div class="game-stats-title">🔐 密码设置</div>
+      <div class="card">
+        <div class="password-form">
+          <input type="password" class="form-input" id="current-password-input" placeholder="当前密码" autocomplete="current-password">
+          <input type="password" class="form-input" id="new-password-input" placeholder="新密码（至少6位）" autocomplete="new-password">
+          <input type="password" class="form-input" id="confirm-password-input" placeholder="确认新密码" autocomplete="new-password">
+          <button class="btn btn-gold btn-block" id="btn-change-password">更新密码</button>
         </div>
       </div>
     </div>
@@ -359,6 +386,40 @@
       UI.toast(err.message || '保存失败', 'error');
     } finally {
       btn.disabled = false;
+    }
+  });
+
+  // ===== 修改密码 =====
+  document.getElementById('btn-change-password').addEventListener('click', async () => {
+    const currentPassword = document.getElementById('current-password-input').value;
+    const newPassword = document.getElementById('new-password-input').value;
+    const confirmPassword = document.getElementById('confirm-password-input').value;
+
+    if (!currentPassword) {
+      UI.toast('请输入当前密码', 'warning'); return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      UI.toast('新密码至少需要 6 位', 'warning'); return;
+    }
+    if (newPassword !== confirmPassword) {
+      UI.toast('两次输入的新密码不一致', 'warning'); return;
+    }
+
+    const btn = document.getElementById('btn-change-password');
+    btn.disabled = true;
+    btn.textContent = '更新中...';
+
+    try {
+      const res = await API.auth.changePassword({ currentPassword, newPassword });
+      document.getElementById('current-password-input').value = '';
+      document.getElementById('new-password-input').value = '';
+      document.getElementById('confirm-password-input').value = '';
+      UI.toast(res.message || '密码已更新', 'success');
+    } catch (err) {
+      UI.toast(err.message || '密码更新失败', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '更新密码';
     }
   });
 

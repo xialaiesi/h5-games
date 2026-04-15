@@ -89,6 +89,63 @@ class AuthService {
   }
 
   /**
+   * 通过手机号重置密码（模拟找回，不校验短信）
+   * @param {{ phone, password }} data
+   * @returns {{ token: string, user: object }}
+   */
+  async resetPassword({ phone, password }) {
+    const normalizedPhone = this._normalizePhone(phone)
+
+    this._assertPhone(normalizedPhone)
+    this._assertPassword(password)
+
+    const user = UserModel.findByPhone(normalizedPhone)
+    if (!user) {
+      const err = new Error('该手机号还没有注册')
+      err.code = 'PHONE_NOT_FOUND'
+      throw err
+    }
+
+    const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS)
+    const updatedUser = UserModel.updatePassword(user.id, password_hash)
+    const token = this._signToken(updatedUser)
+    return { token, user: this._publicUser(updatedUser) }
+  }
+
+  /**
+   * 已登录用户修改密码
+   * @param {{ userId, currentPassword, newPassword }} data
+   * @returns {{ message: string }}
+   */
+  async changePassword({ userId, currentPassword, newPassword }) {
+    if (!currentPassword || !newPassword) {
+      const err = new Error('请填写当前密码和新密码')
+      err.code = 'MISSING_FIELDS'
+      throw err
+    }
+
+    this._assertPassword(newPassword)
+
+    const user = UserModel.findById(userId)
+    if (!user) {
+      const err = new Error('用户不存在')
+      err.code = 'USER_NOT_FOUND'
+      throw err
+    }
+
+    const match = await bcrypt.compare(currentPassword, user.password_hash)
+    if (!match) {
+      const err = new Error('当前密码不正确')
+      err.code = 'INVALID_CREDENTIALS'
+      throw err
+    }
+
+    const password_hash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS)
+    UserModel.updatePassword(user.id, password_hash)
+    return { message: '密码已更新' }
+  }
+
+  /**
    * 刷新 Token（允许旧 token 在过期后 7 天内刷新）
    * @param {string} oldToken
    * @returns {{ token: string }}
@@ -239,6 +296,22 @@ class AuthService {
       ...pub,
       createdAt: pub.created_at,
       updatedAt: pub.updated_at,
+    }
+  }
+
+  _assertPhone(phone) {
+    if (!phone || !PHONE_RE.test(phone)) {
+      const err = new Error('手机号格式不正确')
+      err.code = 'INVALID_PHONE'
+      throw err
+    }
+  }
+
+  _assertPassword(password) {
+    if (!password || password.length < 6) {
+      const err = new Error('密码长度不能少于 6 位')
+      err.code = 'INVALID_PASSWORD'
+      throw err
     }
   }
 

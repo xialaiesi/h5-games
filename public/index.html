@@ -172,6 +172,16 @@
             <span id="online-chess">-- 在线</span>
           </div>
         </div>
+
+        <!-- 疯狂烧烤摊 -->
+        <div class="game-card game-card-wide card-clickable" id="card-bbq">
+          <div class="game-card-icon">🔥</div>
+          <div class="game-card-copy">
+            <div class="game-card-name">疯狂烧烤摊</div>
+            <div class="game-card-online" id="bbq-entry-status">单机闯关 · 账号存档</div>
+          </div>
+          <div class="game-card-arrow">进入 →</div>
+        </div>
       </div>
     </div>
 
@@ -248,7 +258,10 @@
 
   // ===== 用户状态条 =====
   function renderUserStatus() {
-    if (!Auth.isLoggedIn()) return;
+    if (!Auth.isLoggedIn()) {
+      document.getElementById('bbq-entry-status').textContent = '登录后保存进度';
+      return;
+    }
     const user = Auth.getUser();
     if (!user) return;
 
@@ -263,6 +276,9 @@
       document.getElementById('status-rank').innerHTML = UI.rankBadgeHTML(rating);
       document.getElementById('status-rating').textContent = rating + ' 分';
       Auth.updateUser({ stats: data.stats });
+      if (data.bbq && data.bbq.maxLevel) {
+        document.getElementById('bbq-entry-status').textContent = `继续第 ${data.bbq.maxLevel} 关 · 金币 ${(data.bbq.resources && data.bbq.resources.coins) || 0}`;
+      }
     }).catch(() => {
       document.getElementById('status-rating').textContent = '';
     });
@@ -284,6 +300,9 @@
     });
     document.getElementById('card-chess').addEventListener('click', () => {
       location.href = '/chinese-chess/hall.html';
+    });
+    document.getElementById('card-bbq').addEventListener('click', () => {
+      location.href = '/bbq/';
     });
   }
 
