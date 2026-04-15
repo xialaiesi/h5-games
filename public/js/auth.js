@@ -8,25 +8,55 @@
   const TOKEN_KEY = 'qiju_token';
   const USER_KEY  = 'qiju_user';
 
+  function readStorage(storage, key) {
+    try {
+      return storage.getItem(key);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeStorage(storage, key, value) {
+    try {
+      storage.setItem(key, value);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function removeStorage(storage, key) {
+    try {
+      storage.removeItem(key);
+    } catch (_) {}
+  }
+
   const Auth = {
     // 获取 token（优先 localStorage，其次 sessionStorage）
     getToken() {
-      return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || null;
+      return readStorage(localStorage, TOKEN_KEY) || readStorage(sessionStorage, TOKEN_KEY) || null;
     },
 
     // 存储 token 和用户信息
-    // remember=true 存 localStorage，否则存 sessionStorage
+    // sessionStorage 始终保存当前标签页登录态
+    // remember=true 时额外写入 localStorage，支持关闭浏览器后保留
     setAuth(token, user, remember = true) {
       this.clearAuth();
-      const storage = remember ? localStorage : sessionStorage;
-      storage.setItem(TOKEN_KEY, token);
-      storage.setItem(USER_KEY, JSON.stringify(user));
+      const userText = JSON.stringify(user);
+
+      writeStorage(sessionStorage, TOKEN_KEY, token);
+      writeStorage(sessionStorage, USER_KEY, userText);
+
+      if (remember) {
+        writeStorage(localStorage, TOKEN_KEY, token);
+        writeStorage(localStorage, USER_KEY, userText);
+      }
     },
 
     // 获取当前用户信息对象
     getUser() {
       try {
-        const raw = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+        const raw = readStorage(localStorage, USER_KEY) || readStorage(sessionStorage, USER_KEY);
         return raw ? JSON.parse(raw) : null;
       } catch {
         return null;
@@ -40,10 +70,10 @@
 
     // 清除登录态（退出登录）
     clearAuth() {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      sessionStorage.removeItem(TOKEN_KEY);
-      sessionStorage.removeItem(USER_KEY);
+      removeStorage(localStorage, TOKEN_KEY);
+      removeStorage(localStorage, USER_KEY);
+      removeStorage(sessionStorage, TOKEN_KEY);
+      removeStorage(sessionStorage, USER_KEY);
     },
 
     // 更新本地存储的用户信息（如修改昵称后）
@@ -51,9 +81,13 @@
       const user = this.getUser();
       if (!user) return;
       const updated = Object.assign({}, user, patch);
-      const inLocal = !!localStorage.getItem(TOKEN_KEY);
-      const storage = inLocal ? localStorage : sessionStorage;
-      storage.setItem(USER_KEY, JSON.stringify(updated));
+      const userText = JSON.stringify(updated);
+      if (readStorage(sessionStorage, TOKEN_KEY)) {
+        writeStorage(sessionStorage, USER_KEY, userText);
+      }
+      if (readStorage(localStorage, TOKEN_KEY)) {
+        writeStorage(localStorage, USER_KEY, userText);
+      }
       return updated;
     },
 
