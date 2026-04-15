@@ -13,6 +13,7 @@ class BBQProgressModel {
     if (!row) return null
     return {
       ...row,
+      coins: row.coins || 0,
       level_stars: JSON.parse(row.level_stars || '{}'),
     }
   }
@@ -27,8 +28,10 @@ class BBQProgressModel {
     const now = new Date().toISOString()
 
     db.prepare(`
-      INSERT INTO user_bbq_progress (user_id, max_level, total_score, level_stars, last_played, created_at, updated_at)
-      VALUES (?, 1, 0, '{}', ?, ?, ?)
+      INSERT INTO user_bbq_progress (
+        user_id, max_level, total_score, level_stars, coins, last_played, created_at, updated_at
+      )
+      VALUES (?, 1, 0, '{}', 0, ?, ?, ?)
     `).run(userId, now, now, now)
 
     return this.findByUserId(userId)
@@ -50,10 +53,10 @@ class BBQProgressModel {
   /**
    * 更新用户烧烤进度
    * @param {string} userId
-   * @param {{ max_level?, total_score?, level_stars?, last_played? }} data
+   * @param {{ max_level?, total_score?, level_stars?, coins?, last_played? }} data
    * @returns {object|null}
    */
-  update(userId, { max_level, total_score, level_stars, last_played }) {
+  update(userId, { max_level, total_score, level_stars, coins, last_played }) {
     const db = getDB()
     const now = new Date().toISOString()
     const fields = []
@@ -70,6 +73,10 @@ class BBQProgressModel {
     if (level_stars !== undefined) {
       fields.push('level_stars = ?')
       values.push(JSON.stringify(level_stars))
+    }
+    if (coins !== undefined) {
+      fields.push('coins = ?')
+      values.push(coins)
     }
     if (last_played !== undefined) {
       fields.push('last_played = ?')
@@ -93,28 +100,32 @@ class BBQProgressModel {
    * @param {number} score
    */
   saveLevelComplete(userId, level, stars, score) {
-    const db = getDB()
     const now = new Date().toISOString()
-    
     const progress = this.getOrCreate(userId)
-    
-    let levelStars = progress.level_stars || {}
+
+    const levelStars = { ...(progress.level_stars || {}) }
     const prevStars = levelStars[level] || 0
     if (stars > prevStars) {
       levelStars[level] = stars
     }
 
-    const newMaxLevel = Math.max(progress.max_level, level + 1)
+    const newMaxLevel = Math.min(50, Math.max(progress.max_level, level + 1))
     const newTotalScore = progress.total_score + score
+    const coinReward = this._calcCoinReward(stars)
+    const newCoins = (progress.coins || 0) + coinReward
 
     this.update(userId, {
       max_level: newMaxLevel,
       total_score: newTotalScore,
       level_stars: levelStars,
+      coins: newCoins,
       last_played: now,
     })
 
-    return this.findByUserId(userId)
+    return {
+      ...this.findByUserId(userId),
+      coin_reward: coinReward,
+    }
   }
 
   /**
@@ -136,6 +147,10 @@ class BBQProgressModel {
       ORDER BY p.total_score DESC
       LIMIT ?
     `).all(limit)
+  }
+
+  _calcCoinReward(stars) {
+    return Math.max(0, stars) * 20
   }
 }
 

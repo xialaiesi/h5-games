@@ -939,6 +939,10 @@ html, body {
         <span class="hall-stat-lbl">累计积分</span>
       </div>
       <div class="hall-stat">
+        <span class="hall-stat-val" id="hall-coins">0</span>
+        <span class="hall-stat-lbl">金币资源</span>
+      </div>
+      <div class="hall-stat">
         <span class="hall-stat-val" id="hall-maxlv">第1关</span>
         <span class="hall-stat-lbl">当前进度</span>
       </div>
@@ -1004,6 +1008,7 @@ html, body {
     <span class="modal-icon">🎉</span>
     <div class="modal-title">通关！</div>
     <div class="modal-sub">得分：<strong id="win-score">0</strong></div>
+    <div class="modal-sub">金币：<strong id="win-coins">0</strong></div>
     <div class="modal-stars" id="win-stars">⭐⭐⭐</div>
     <button class="mbtn prim" id="btn-next">下一关 →</button>
     <button class="mbtn sec"  id="btn-win-retry">再来一次</button>
@@ -1024,6 +1029,6 @@ html, body {
 
 <script src="../js/api.js"></script>
 <script src="../js/auth.js"></script>
-<script src="game.js?v=47"></script>
+<script src="game.js?v=48"></script>
 </body>
 </html>

@@ -19,6 +19,9 @@ router.get('/progress', verifyToken, (req, res) => {
         totalScore: progress.total_score,
         levelStars: progress.level_stars,
         lastPlayed: progress.last_played,
+        resources: {
+          coins: progress.coins || 0,
+        },
       },
     })
   } catch (err) {
@@ -53,6 +56,10 @@ router.post('/save', verifyToken, (req, res) => {
         maxLevel:   progress.max_level,
         totalScore: progress.total_score,
         levelStars: progress.level_stars,
+        coinReward: progress.coin_reward || 0,
+        resources: {
+          coins: progress.coins || 0,
+        },
       },
     })
   } catch (err) {

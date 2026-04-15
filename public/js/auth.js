@@ -17,6 +17,7 @@
     // 存储 token 和用户信息
     // remember=true 存 localStorage，否则存 sessionStorage
     setAuth(token, user, remember = true) {
+      this.clearAuth();
       const storage = remember ? localStorage : sessionStorage;
       storage.setItem(TOKEN_KEY, token);
       storage.setItem(USER_KEY, JSON.stringify(user));
@@ -59,8 +60,9 @@
     // 路由守卫：要求登录才能访问，未登录跳转 login 页
     requireAuth(redirectBack = true) {
       if (!this.isLoggedIn()) {
+        const currentPath = location.pathname + location.search + location.hash;
         const target = redirectBack
-          ? '/login.html?redirect=' + encodeURIComponent(location.href)
+          ? '/login.html?redirect=' + encodeURIComponent(currentPath)
           : '/login.html';
         location.href = target;
         return false;
@@ -82,7 +84,15 @@
       const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
       // 只允许同域跳转，防止开放重定向
-      if (redirect && redirect.startsWith('/')) return redirect;
+      if (redirect) {
+        if (redirect.startsWith('/')) return redirect;
+        try {
+          const url = new URL(redirect, location.origin);
+          if (url.origin === location.origin) {
+            return url.pathname + url.search + url.hash;
+          }
+        } catch (_) {}
+      }
       return fallback;
     },
 

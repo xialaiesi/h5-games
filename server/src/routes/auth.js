@@ -8,12 +8,12 @@ const { authLimiter } = require('../middleware/rateLimiter')
 
 /**
  * POST /api/auth/register
- * 邮箱注册
+ * 模拟手机号注册
  */
 router.post('/register', authLimiter, async (req, res, next) => {
   try {
-    const { email, password, nickname } = req.body
-    const result = await AuthService.register({ email, password, nickname })
+    const { phone, password, nickname } = req.body
+    const result = await AuthService.register({ phone, password, nickname })
     res.json({ ok: true, data: result })
   } catch (err) {
     if (err.code) {
@@ -28,12 +28,12 @@ router.post('/register', authLimiter, async (req, res, next) => {
 
 /**
  * POST /api/auth/login
- * 邮箱登录
+ * 手机号登录
  */
 router.post('/login', authLimiter, async (req, res, next) => {
   try {
-    const { email, password } = req.body
-    const result = await AuthService.login({ email, password })
+    const { phone, email, password } = req.body
+    const result = await AuthService.login({ phone, email, password })
     res.json({ ok: true, data: result })
   } catch (err) {
     if (err.code === 'INVALID_CREDENTIALS' || err.code === 'MISSING_FIELDS') {

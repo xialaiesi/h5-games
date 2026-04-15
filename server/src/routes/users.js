@@ -3,6 +3,7 @@
 const express = require('express')
 const router = express.Router()
 const UserModel = require('../models/UserModel')
+const bbqProgressModel = require('../models/BBQProgressModel')
 const { verifyToken } = require('../middleware/auth')
 
 /**
@@ -20,11 +21,26 @@ router.get('/me', verifyToken, (req, res, next) => {
     }
 
     const stats = UserModel.getStats(user.id)
+    const bbq = bbqProgressModel.getOrCreate(user.id)
     const { password_hash, ...pub } = user
 
     res.json({
       ok: true,
-      data: { ...pub, stats },
+      data: {
+        ...pub,
+        createdAt: pub.created_at,
+        updatedAt: pub.updated_at,
+        stats,
+        bbq: {
+          maxLevel: bbq.max_level,
+          totalScore: bbq.total_score,
+          levelStars: bbq.level_stars,
+          lastPlayed: bbq.last_played,
+          resources: {
+            coins: bbq.coins || 0,
+          },
+        },
+      },
     })
   } catch (err) {
     next(err)
@@ -59,6 +75,24 @@ router.patch('/me', verifyToken, (req, res, next) => {
 
     const { password_hash, ...pub } = updated
     res.json({ ok: true, data: pub })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * GET /api/users/me/records
+ * 获取当前用户对局记录（分页）
+ */
+router.get('/me/records', verifyToken, (req, res, next) => {
+  try {
+    const { gameType, page, limit } = req.query
+    const result = UserModel.getRecords(req.user.userId, {
+      gameType: gameType || null,
+      page: parseInt(page) || 1,
+      limit: Math.min(parseInt(limit) || 20, 100),
+    })
+    res.json({ ok: true, data: result })
   } catch (err) {
     next(err)
   }

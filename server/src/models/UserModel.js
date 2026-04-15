@@ -27,18 +27,27 @@ class UserModel {
   }
 
   /**
+   * 根据手机号查询用户
+   * @param {string} phone
+   * @returns {object|null}
+   */
+  findByPhone(phone) {
+    return getDB().prepare('SELECT * FROM users WHERE phone = ?').get(phone) || null
+  }
+
+  /**
    * 创建新用户（同时初始化两种游戏的战绩记录）
-   * @param {{ email, password_hash, nickname, avatar?, tenant_id? }} data
+   * @param {{ email?, phone?, password_hash, nickname, avatar?, tenant_id? }} data
    * @returns {object} 新建的用户对象
    */
-  create({ email, password_hash, nickname, avatar = null, tenant_id = null }) {
+  create({ email = null, phone = null, password_hash, nickname, avatar = null, tenant_id = null }) {
     const db = getDB()
     const id = uuidv4()
     const now = new Date().toISOString()
 
     const insertUser = db.prepare(`
-      INSERT INTO users (id, email, password_hash, nickname, avatar, tenant_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (id, email, phone, password_hash, nickname, avatar, tenant_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
     const insertStats = db.prepare(`
@@ -48,7 +57,7 @@ class UserModel {
 
     // 事务保证用户和战绩同时写入
     db.transaction(() => {
-      insertUser.run(id, email, password_hash, nickname, avatar, tenant_id, now, now)
+      insertUser.run(id, email, phone, password_hash, nickname, avatar, tenant_id, now, now)
       insertStats.run(uuidv4(), id, 'gomoku')
       insertStats.run(uuidv4(), id, 'chinese-chess')
     })()
@@ -99,14 +108,33 @@ class UserModel {
    * @returns {object} { gomoku: {...}, 'chinese-chess': {...} }
    */
   getStats(userId) {
+    const user = this.findById(userId)
     const rows = getDB().prepare('SELECT * FROM user_stats WHERE user_id = ?').all(userId)
-    const stats = {}
+    const stats = {
+      gomoku: {
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        total_games: 0,
+        rating: user?.rating_gomoku || 1000,
+      },
+      'chinese-chess': {
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        total_games: 0,
+        rating: user?.rating_chess || 1000,
+      },
+    }
     for (const row of rows) {
       stats[row.game_type] = {
         wins: row.wins,
         losses: row.losses,
         draws: row.draws,
         total_games: row.total_games,
+        rating: row.game_type === 'gomoku'
+          ? (user?.rating_gomoku || 1000)
+          : (user?.rating_chess || 1000),
       }
     }
     return stats

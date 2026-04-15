@@ -9,6 +9,7 @@ const UserModel = require('../models/UserModel')
 const JWT_SECRET = () => process.env.JWT_SECRET || 'default_dev_secret_change_in_production'
 const JWT_EXPIRES = '7d'
 const BCRYPT_ROUNDS = 10
+const PHONE_RE = /^1\d{10}$/
 
 /**
  * 认证服务
@@ -16,15 +17,16 @@ const BCRYPT_ROUNDS = 10
  */
 class AuthService {
   /**
-   * 邮箱注册
-   * @param {{ email, password, nickname }} data
+   * 模拟手机号注册
+   * @param {{ phone, password, nickname }} data
    * @returns {{ token: string, user: object }}
    */
-  async register({ email, password, nickname }) {
-    // 参数校验
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      const err = new Error('邮箱格式不正确')
-      err.code = 'INVALID_EMAIL'
+  async register({ phone, password, nickname }) {
+    const normalizedPhone = this._normalizePhone(phone)
+
+    if (!normalizedPhone || !PHONE_RE.test(normalizedPhone)) {
+      const err = new Error('手机号格式不正确')
+      err.code = 'INVALID_PHONE'
       throw err
     }
     if (!password || password.length < 6) {
@@ -38,42 +40,46 @@ class AuthService {
       throw err
     }
 
-    // 检查邮箱唯一性
-    if (UserModel.findByEmail(email)) {
-      const err = new Error('该邮箱已被注册')
-      err.code = 'EMAIL_EXISTS'
+    if (UserModel.findByPhone(normalizedPhone)) {
+      const err = new Error('该手机号已被注册')
+      err.code = 'PHONE_EXISTS'
       throw err
     }
 
     const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS)
-    const user = UserModel.create({ email, password_hash, nickname })
+    const user = UserModel.create({ phone: normalizedPhone, password_hash, nickname })
     const token = this._signToken(user)
 
     return { token, user: this._publicUser(user) }
   }
 
   /**
-   * 邮箱登录
-   * @param {{ email, password }} data
+   * 手机号登录（兼容旧邮箱账号）
+   * @param {{ phone?, email?, password }} data
    * @returns {{ token: string, user: object }}
    */
-  async login({ email, password }) {
-    if (!email || !password) {
-      const err = new Error('邮箱和密码不能为空')
+  async login({ phone, email, password }) {
+    const normalizedPhone = this._normalizePhone(phone)
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
+
+    if ((!normalizedPhone && !normalizedEmail) || !password) {
+      const err = new Error('手机号和密码不能为空')
       err.code = 'MISSING_FIELDS'
       throw err
     }
 
-    const user = UserModel.findByEmail(email)
+    const user = normalizedPhone
+      ? UserModel.findByPhone(normalizedPhone)
+      : UserModel.findByEmail(normalizedEmail)
     if (!user) {
-      const err = new Error('邮箱或密码错误')
+      const err = new Error('手机号或密码错误')
       err.code = 'INVALID_CREDENTIALS'
       throw err
     }
 
     const match = await bcrypt.compare(password, user.password_hash)
     if (!match) {
-      const err = new Error('邮箱或密码错误')
+      const err = new Error('手机号或密码错误')
       err.code = 'INVALID_CREDENTIALS'
       throw err
     }
@@ -171,6 +177,7 @@ class AuthService {
     return {
       userId: payload.sub,
       nickname: payload.nickname,
+      phone: payload.phone || null,
       email: payload.email,
       jti: payload.jti,
     }
@@ -186,6 +193,7 @@ class AuthService {
       {
         sub: user.id,
         nickname: user.nickname,
+        phone: user.phone || null,
         email: user.email,
         jti: uuidv4(),
       },
@@ -227,7 +235,17 @@ class AuthService {
    */
   _publicUser(user) {
     const { password_hash, ...pub } = user
-    return pub
+    return {
+      ...pub,
+      createdAt: pub.created_at,
+      updatedAt: pub.updated_at,
+    }
+  }
+
+  _normalizePhone(phone) {
+    return String(phone || '')
+      .replace(/[^\d]/g, '')
+      .trim()
   }
 }
 

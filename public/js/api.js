@@ -27,7 +27,7 @@
     }
 
     // 401 自动清除登录态
-    if (res.status === 401) {
+    if (res.status === 401 && token) {
       if (root.Auth) root.Auth.clearAuth();
       // 不在登录页时跳转
       if (!location.pathname.includes('/login.html')) {
@@ -36,18 +36,25 @@
       throw new Error('登录已过期，请重新登录');
     }
 
-    let data;
+    let payload;
     try {
-      data = await res.json();
+      payload = await res.json();
     } catch {
-      data = {};
+      payload = {};
     }
 
     if (!res.ok) {
-      throw new Error(data.message || data.error || `请求失败(${res.status})`);
+      const message =
+        (payload && payload.error && payload.error.message) ||
+        payload.message ||
+        payload.error ||
+        `请求失败(${res.status})`;
+      const err = new Error(message);
+      err.code = (payload && payload.error && payload.error.code) || payload.code || 'REQUEST_FAILED';
+      throw err;
     }
 
-    return data;
+    return payload && Object.prototype.hasOwnProperty.call(payload, 'data') ? payload.data : payload;
   }
 
   const API = {
@@ -83,8 +90,16 @@
       getById:     (id)   => request('GET',   `/users/${id}`),
       getRecords:  (id, params) => {
         const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-        return request('GET', `/users/${id}/records${qs}`);
+        const target = id === 'me' ? '/users/me/records' : `/users/${id}/records`;
+        return request('GET', `${target}${qs}`);
       },
+    },
+
+    // ===== BBQ 接口 =====
+    bbq: {
+      getProgress: () => request('GET', '/bbq/progress'),
+      save: (level, stars, score) => request('POST', '/bbq/save', { level, stars, score }),
+      getLeaderboard: (limit = 20) => request('GET', `/bbq/leaderboard?limit=${limit}`),
     },
 
     // ===== Leaderboard 接口 =====

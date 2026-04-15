@@ -157,6 +157,31 @@
       </div>
     </div>
 
+    <!-- 烧烤摊进度 -->
+    <div class="home-section">
+      <div class="game-stats-title">🔥 烧烤摊档案</div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span id="bbq-level-text" class="text-gold" style="font-size:20px;font-weight:700">第1关</span>
+          <span id="bbq-last-played" style="font-size:12px;color:var(--color-text-muted)">尚未开玩</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-cell">
+            <div class="stat-cell-value" id="bbq-score">0</div>
+            <div class="stat-cell-label">累计积分</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-value text-gold" id="bbq-coins">0</div>
+            <div class="stat-cell-label">金币</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-value" id="bbq-stars">0</div>
+            <div class="stat-cell-label">已得星数</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 最近对局记录 -->
     <div class="home-section">
       <div class="game-stats-title">&#x1F4CB; 最近对局</div>
@@ -214,15 +239,34 @@
   // ===== 渲染基础信息 =====
   function renderBasicInfo(data) {
     const nickname = data.nickname || '未知用户';
+    const account = data.phone ? `手机号 ${maskPhone(data.phone)}` : (data.email || '');
     document.getElementById('profile-nickname').textContent = nickname;
-    document.getElementById('profile-email').textContent    = data.email || '';
+    document.getElementById('profile-email').textContent    = account;
     document.getElementById('profile-since').textContent   =
-      data.createdAt ? '注册于 ' + UI.formatDate(data.createdAt) : '';
+      (data.createdAt || data.created_at) ? '注册于 ' + UI.formatDate(data.createdAt || data.created_at) : '';
     document.getElementById('nickname-input').value = nickname;
 
     // 头像用昵称首字
     const char = nickname.charAt(0).toUpperCase();
     document.getElementById('profile-avatar').textContent = char;
+  }
+
+  function renderBBQ(data) {
+    const bbq = data && data.bbq ? data.bbq : {};
+    const maxLevel = bbq.maxLevel || 1;
+    const totalScore = bbq.totalScore || 0;
+    const coins = (bbq.resources && bbq.resources.coins) || 0;
+    const levelStars = bbq.levelStars || {};
+    const starCount = Object.values(levelStars).reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0);
+    const hasPlayed = totalScore > 0 || starCount > 0 || maxLevel > 1;
+
+    document.getElementById('bbq-level-text').textContent = `第${maxLevel}关`;
+    document.getElementById('bbq-score').textContent = totalScore;
+    document.getElementById('bbq-coins').textContent = coins;
+    document.getElementById('bbq-stars').textContent = starCount;
+    document.getElementById('bbq-last-played').textContent = hasPlayed && bbq.lastPlayed
+      ? '最近游玩 ' + UI.formatTime(bbq.lastPlayed)
+      : '尚未开玩';
   }
 
   // ===== 渲染战绩 =====
@@ -275,7 +319,7 @@
           <div class="match-result ${result}">${resText}</div>
           <div class="match-info">
             <div class="match-opponent">${escHtml(r.opponentNickname || '对手')}</div>
-            <div class="match-meta">${gameText} · ${UI.formatTime(r.endedAt || r.createdAt)}</div>
+            <div class="match-meta">${gameText} · ${UI.formatTime(r.finishedAt || r.endedAt || r.createdAt)}</div>
           </div>
           <div class="match-delta ${deltaCls}">${deltaStr}</div>
         </div>
@@ -286,6 +330,11 @@
   function escHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function maskPhone(phone) {
+    const raw = String(phone || '');
+    return raw.length === 11 ? `${raw.slice(0, 3)}****${raw.slice(-4)}` : raw;
   }
 
   // ===== 修改昵称 =====
@@ -317,8 +366,6 @@
   async function loadProfile() {
     try {
       UI.showLoading('加载中...');
-      const userId = user && user.sub ? user.sub : 'me';
-
       const [meData, recordsData] = await Promise.all([
         API.users.me(),
         API.users.getRecords('me', { limit: 20 }).catch(() => ({ list: [] })),
@@ -326,7 +373,8 @@
 
       renderBasicInfo(meData);
       renderStats(meData.stats);
-      renderRecords(recordsData.list || recordsData || []);
+      renderBBQ(meData);
+      renderRecords(recordsData.records || recordsData.list || recordsData || []);
     } catch (err) {
       UI.toast('加载失败：' + (err.message || '请重试'), 'error');
       // 降级：使用本地缓存

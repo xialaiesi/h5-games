@@ -172,53 +172,82 @@ function generateLevel(levelNum) {
 
 // ==================== 存档 ====================
 
-const SAVE_KEY = 'bbq_crazy_v4';
-const BBQ_API_BASE = '/api/bbq';
+const SAVE_KEY_PREFIX = 'bbq_crazy_v5';
+let saveStateCache = null;
 
-function loadSave() {
-  const local = (() => {
+function getSaveKey() {
+  const user = typeof Auth !== 'undefined' && Auth.getUser ? Auth.getUser() : null;
+  const scope = user && (user.id || user.phone) ? (user.id || user.phone) : 'guest';
+  return `${SAVE_KEY_PREFIX}:${scope}`;
+}
+
+function normalizeSave(data) {
+  const raw = data && typeof data === 'object' ? data : {};
+  const rawResources = raw.resources && typeof raw.resources === 'object' ? raw.resources : {};
+  return {
+    maxLevel: 1,
+    levelStars: {},
+    totalScore: 0,
+    lastPlayed: null,
+    resources: {
+      coins: 0,
+    },
+    ...raw,
+    levelStars: { ...(raw.levelStars || {}) },
+    resources: {
+      coins: 0,
+      ...rawResources,
+    },
+  };
+}
+
+function readLocalSave() {
+  try {
+    return normalizeSave(JSON.parse(localStorage.getItem(getSaveKey()) || 'null'));
+  } catch (_) {
+    return normalizeSave();
+  }
+}
+
+function writeSave(data) {
+  saveStateCache = normalizeSave(data);
+  localStorage.setItem(getSaveKey(), JSON.stringify(saveStateCache));
+  return saveStateCache;
+}
+
+function getSaveSnapshot() {
+  if (!saveStateCache) saveStateCache = readLocalSave();
+  return saveStateCache;
+}
+
+async function loadSave() {
+  if (saveStateCache) return saveStateCache;
+
+  const local = readLocalSave();
+  saveStateCache = local;
+
+  if (typeof API !== 'undefined' && API.bbq && API.isLoggedIn && API.isLoggedIn()) {
     try {
-      const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-      if (d) return { maxLevel: 1, levelStars: {}, totalScore: 0, ...d };
+      const cloud = await API.bbq.getProgress();
+      if (cloud) return writeSave(cloud);
     } catch (_) {}
-    return { maxLevel: 1, levelStars: {}, totalScore: 0 };
-  })();
-
-  if (typeof API !== 'undefined' && API.isLoggedIn && API.isLoggedIn()) {
-    API.bbq = {
-      getProgress() {
-        return fetch(`${BBQ_API_BASE}/progress`, {
-          headers: API._authHeader(),
-        }).then(r => r.json()).then(d => d.ok ? d.data : null).catch(() => null);
-      },
-      save(level, stars, score) {
-        return fetch(`${BBQ_API_BASE}/save`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...API._authHeader() },
-          body: JSON.stringify({ level, stars, score }),
-        }).then(r => r.json()).then(d => d.ok ? d.data : null).catch(() => null);
-      },
-    };
-    API.bbq.getProgress().then(cloud => {
-      if (cloud) {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(cloud));
-      }
-    });
   }
 
   return local;
 }
 
-function writeSave(d) {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(d));
-}
-
 async function syncToCloud(level, stars, score) {
-  if (typeof API !== 'undefined' && API.bbq && API.bbq.save) {
+  if (typeof API !== 'undefined' && API.bbq && API.isLoggedIn && API.isLoggedIn()) {
     try {
-      await API.bbq.save(level, stars, score);
+      const cloud = await API.bbq.save(level, stars, score);
+      if (cloud) return writeSave(cloud);
     } catch (_) {}
   }
+  return null;
+}
+
+function calcCoinReward(stars) {
+  return Math.max(0, stars) * 20;
 }
 
 // ==================== 游戏状态 ====================
@@ -1099,20 +1128,27 @@ function triggerWin() {
   const stars = G.timerSec > G.data.cfg.time * 0.6 ? 3
               : G.timerSec > G.data.cfg.time * 0.3 ? 2 : 1;
 
-  const save = loadSave();
+  const save = getSaveSnapshot();
   const prevStars = save.levelStars[G.level] || 0;
+  const coinReward = calcCoinReward(stars);
   if (stars > prevStars) save.levelStars[G.level] = stars;
   if (G.level >= save.maxLevel) save.maxLevel = Math.min(50, G.level + 1);
   save.totalScore = (save.totalScore || 0) + G.score;
+  save.lastPlayed = new Date().toISOString();
+  save.resources = {
+    ...(save.resources || {}),
+    coins: ((save.resources && save.resources.coins) || 0) + coinReward,
+  };
   writeSave(save);
 
   // 异步同步到云端
-  syncToCloud(G.level, stars, G.score);
+  void syncToCloud(G.level, stars, G.score);
 
   // 庆祝粒子
   spawnConfetti();
 
   document.getElementById('win-score').textContent = G.score;
+  document.getElementById('win-coins').textContent = '+' + coinReward;
   document.getElementById('win-stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
   document.getElementById('btn-next').style.display = G.level < 50 ? 'block' : 'none';
   showOverlay('ov-win');
@@ -1203,8 +1239,9 @@ function showPage(name) {
 // ==================== 关卡大厅 ====================
 
 function renderHall() {
-  const save = loadSave();
+  const save = getSaveSnapshot();
   document.getElementById('hall-score').textContent  = save.totalScore || 0;
+  document.getElementById('hall-coins').textContent  = (save.resources && save.resources.coins) || 0;
   document.getElementById('hall-maxlv').textContent  = `第${save.maxLevel}关`;
 
   const grid = document.getElementById('level-grid');
@@ -1230,7 +1267,11 @@ function renderHall() {
 
 // ==================== 初始化 ====================
 
-function init() {
+async function init() {
+  if (typeof Auth !== 'undefined' && Auth.requireAuth && !Auth.requireAuth()) return;
+
+  await loadSave();
+
   // 关卡大厅
   renderHall();
 
@@ -1275,4 +1316,6 @@ function init() {
   }, { passive: false });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+});
