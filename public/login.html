@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>登录 / 注册 - 棋局</title>
+<title>登录 / 注册 - 疯狂烧烤摊</title>
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/components.css">
 <link rel="stylesheet" href="/css/layout.css">
@@ -14,7 +14,7 @@
   <div class="auth-box">
     <!-- Logo -->
     <div class="auth-logo">
-      <div class="auth-logo-text">棋 局</div>
+      <div class="auth-logo-text">烧 烤 摊</div>
       <div class="auth-logo-subtitle">手机号登录 · 独立存档</div>
     </div>
 
@@ -276,7 +276,7 @@
     try {
       const res = await API.auth.register({ phone, password, nickname });
       Auth.setAuth(res.token, res.user, true);
-      UI.toast('注册成功，欢迎加入棋局！', 'success');
+      UI.toast('注册成功，开张营业！', 'success');
       setTimeout(() => {
         location.href = Auth.getRedirectUrl('/index.html');
       }, 800);

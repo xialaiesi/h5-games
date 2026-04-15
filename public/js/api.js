@@ -95,11 +95,6 @@
       me:          ()     => request('GET',   '/users/me'),
       updateMe:    (data) => request('PATCH', '/users/me', data),
       getById:     (id)   => request('GET',   `/users/${id}`),
-      getRecords:  (id, params) => {
-        const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-        const target = id === 'me' ? '/users/me/records' : `/users/${id}/records`;
-        return request('GET', `${target}${qs}`);
-      },
     },
 
     // ===== BBQ 接口 =====
@@ -108,21 +103,9 @@
       save: (level, stars, score) => request('POST', '/bbq/save', { level, stars, score }),
       getLeaderboard: (limit = 20) => request('GET', `/bbq/leaderboard?limit=${limit}`),
     },
-
-    // ===== Leaderboard 接口 =====
-    leaderboard: {
-      get: (gameType, limit = 5) =>
-        request('GET', `/leaderboard/${gameType}?limit=${limit}`),
-    },
-
     // ===== Rooms 接口 =====
     rooms: {
       getById: (id) => request('GET', `/rooms/${id}`),
-    },
-
-    // ===== Records 接口 =====
-    records: {
-      getById: (id) => request('GET', `/records/${id}`),
     },
   };
 

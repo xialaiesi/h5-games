@@ -9,8 +9,6 @@ const express = require('express')
 const cors = require('cors')
 
 const { initDB } = require('./db')
-const WSServer = require('./ws')
-const MatchmakingEngine = require('./services/MatchmakingEngine')
 const { errorHandler, notFound } = require('./middleware/errorHandler')
 
 // ===== 初始化数据库 =====
@@ -57,8 +55,6 @@ app.get('/api/health', (req, res) => {
 // ===== 路由挂载 =====
 app.use('/api/auth',        require('./routes/auth'))
 app.use('/api/users',       require('./routes/users'))
-app.use('/api/leaderboard', require('./routes/leaderboard'))
-app.use('/api/records',     require('./routes/records'))
 app.use('/api/bbq',         require('./routes/bbq'))
 
 // 静态文件（生产环境由 Nginx 处理，这里保留用于开发和简单部署）
@@ -75,28 +71,18 @@ app.use(errorHandler)
 // ===== 创建 HTTP 服务器 =====
 const httpServer = http.createServer(app)
 
-// ===== 挂载 WebSocket 服务 =====
-const wsServer = new WSServer(httpServer)
-
-// ===== 启动匹配引擎 =====
-MatchmakingEngine.start()
-
 // ===== 监听端口 =====
 const PORT = parseInt(process.env.PORT) || 3000
 
 httpServer.listen(PORT, () => {
   console.log(`[App] 服务器已启动`)
   console.log(`[App] HTTP: http://localhost:${PORT}`)
-  console.log(`[App] WebSocket: ws://localhost:${PORT}/ws`)
   console.log(`[App] 环境: ${process.env.NODE_ENV || 'development'}`)
 })
 
 // ===== 优雅退出 =====
 function gracefulShutdown(signal) {
   console.log(`\n[App] 收到 ${signal}，开始优雅退出...`)
-
-  MatchmakingEngine.stop()
-  wsServer.close()
 
   httpServer.close(() => {
     console.log('[App] HTTP 服务器已关闭')

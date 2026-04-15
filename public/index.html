@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>棋局 - H5 在线棋牌平台</title>
+<title>疯狂烧烤摊</title>
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/components.css">
 <link rel="stylesheet" href="/css/layout.css">
@@ -57,33 +57,32 @@
     font-size: 12px;
   }
 
-  /* 排行榜选项卡 */
-  .leaderboard-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
+  .home-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 
-  .lb-tab {
-    padding: 5px 16px;
-    border-radius: var(--border-radius-full);
-    font-size: 13px;
-    color: var(--color-text-muted);
+  .summary-item {
+    padding: 14px 12px;
     background: var(--color-bg-card);
     border: 1px solid var(--color-border);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    user-select: none;
+    border-radius: var(--border-radius-sm);
+    text-align: center;
   }
 
-  .lb-tab.active {
-    background: var(--color-gold-dim);
+  .summary-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
     color: var(--color-gold);
-    border-color: rgba(224,192,128,0.4);
+    margin-bottom: 4px;
   }
 
-  .lb-panel { display: none; }
-  .lb-panel.active { display: block; }
+  .summary-label {
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
 
   /* 底部导航 */
   .bottom-nav {
@@ -123,7 +122,7 @@
 <!-- 顶部导航 -->
 <nav class="navbar">
   <div class="navbar-inner">
-    <div class="navbar-logo">棋局<span>QiJu</span></div>
+    <div class="navbar-logo">烧烤摊<span>BBQ</span></div>
     <div class="navbar-actions" id="nav-actions">
       <!-- 动态渲染：登录/注册 或 用户名+退出 -->
     </div>
@@ -136,8 +135,8 @@
 
     <!-- Hero 标题 -->
     <div class="home-hero">
-      <div class="home-hero-title">棋 局</div>
-      <div class="home-hero-sub">在线棋牌 · 随时对弈</div>
+      <div class="home-hero-title">烧 烤 摊</div>
+      <div class="home-hero-sub">登录后自动同步你的闯关进度</div>
     </div>
 
     <!-- 用户状态条（登录后显示） -->
@@ -151,29 +150,8 @@
 
     <!-- 游戏入口 -->
     <div class="home-section">
-      <div class="section-title">选择游戏</div>
+      <div class="section-title">开始营业</div>
       <div class="game-cards">
-        <!-- 五子棋 -->
-        <div class="game-card card-clickable" id="card-gomoku">
-          <div class="game-card-icon">&#x26AB;</div>
-          <div class="game-card-name">五子棋</div>
-          <div class="game-card-online">
-            <span class="online-dot"></span>
-            <span id="online-gomoku">-- 在线</span>
-          </div>
-        </div>
-
-        <!-- 中国象棋 -->
-        <div class="game-card card-clickable" id="card-chess">
-          <div class="game-card-icon">&#x265A;</div>
-          <div class="game-card-name">象棋</div>
-          <div class="game-card-online">
-            <span class="online-dot"></span>
-            <span id="online-chess">-- 在线</span>
-          </div>
-        </div>
-
-        <!-- 疯狂烧烤摊 -->
         <div class="game-card game-card-wide card-clickable" id="card-bbq">
           <div class="game-card-icon">🔥</div>
           <div class="game-card-copy">
@@ -185,33 +163,20 @@
       </div>
     </div>
 
-    <!-- 排行榜 -->
     <div class="home-section">
-      <div class="section-title">排行榜</div>
-      <div class="leaderboard-tabs">
-        <div class="lb-tab active" data-tab="gomoku">五子棋</div>
-        <div class="lb-tab" data-tab="chess">中国象棋</div>
-      </div>
-
-      <div class="card" style="padding: 16px 20px;">
-        <div class="lb-panel active" id="lb-gomoku">
-          <div id="lb-gomoku-list">
-            <!-- 加载中占位 -->
-            <div class="rank-item">
-              <div class="rank-num skeleton" style="width:20px;height:16px;"></div>
-              <div class="rank-nickname skeleton" style="height:16px;width:80px;"></div>
-              <div class="rank-score skeleton" style="height:16px;width:40px;"></div>
-            </div>
-          </div>
+      <div class="section-title">存档概览</div>
+      <div class="home-summary">
+        <div class="summary-item">
+          <span class="summary-value" id="home-level">第1关</span>
+          <span class="summary-label">当前进度</span>
         </div>
-        <div class="lb-panel" id="lb-chess">
-          <div id="lb-chess-list">
-            <div class="rank-item">
-              <div class="rank-num skeleton" style="width:20px;height:16px;"></div>
-              <div class="rank-nickname skeleton" style="height:16px;width:80px;"></div>
-              <div class="rank-score skeleton" style="height:16px;width:40px;"></div>
-            </div>
-          </div>
+        <div class="summary-item">
+          <span class="summary-value" id="home-score">0</span>
+          <span class="summary-label">累计积分</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-value" id="home-coins">0</span>
+          <span class="summary-label">金币</span>
         </div>
       </div>
     </div>
@@ -223,7 +188,7 @@
 <nav class="bottom-nav">
   <a class="bottom-nav-item active" href="/index.html">
     <span class="bottom-nav-icon">&#x1F3E0;</span>
-    <span>大厅</span>
+    <span>首页</span>
   </a>
   <a class="bottom-nav-item" href="/profile.html" id="nav-profile-link">
     <span class="bottom-nav-icon">&#x1F464;</span>
@@ -260,6 +225,9 @@
   function renderUserStatus() {
     if (!Auth.isLoggedIn()) {
       document.getElementById('bbq-entry-status').textContent = '登录后保存进度';
+      document.getElementById('home-level').textContent = '第1关';
+      document.getElementById('home-score').textContent = '0';
+      document.getElementById('home-coins').textContent = '0';
       return;
     }
     const user = Auth.getUser();
@@ -271,14 +239,19 @@
 
     // 尝试从 API 获取最新积分（可失败）
     API.users.me().then(data => {
-      const rating = (data.stats && data.stats.gomoku && data.stats.gomoku.rating) || 1000;
-      const info = UI.getRankInfo(rating);
-      document.getElementById('status-rank').innerHTML = UI.rankBadgeHTML(rating);
-      document.getElementById('status-rating').textContent = rating + ' 分';
-      Auth.updateUser({ stats: data.stats });
-      if (data.bbq && data.bbq.maxLevel) {
-        document.getElementById('bbq-entry-status').textContent = `继续第 ${data.bbq.maxLevel} 关 · 金币 ${(data.bbq.resources && data.bbq.resources.coins) || 0}`;
-      }
+      const bbq = data.bbq || {};
+      const maxLevel = bbq.maxLevel || 1;
+      const totalScore = bbq.totalScore || 0;
+      const coins = (bbq.resources && bbq.resources.coins) || 0;
+
+      document.getElementById('status-rank').innerHTML =
+        `<span style="font-size:12px;color:var(--color-gold)">第 ${maxLevel} 关</span>`;
+      document.getElementById('status-rating').textContent = `金币 ${coins}`;
+      document.getElementById('bbq-entry-status').textContent = `继续第 ${maxLevel} 关 · 金币 ${coins}`;
+      document.getElementById('home-level').textContent = `第${maxLevel}关`;
+      document.getElementById('home-score').textContent = totalScore;
+      document.getElementById('home-coins').textContent = coins;
+      Auth.updateUser({ bbq });
     }).catch(() => {
       document.getElementById('status-rating').textContent = '';
     });
@@ -295,83 +268,9 @@
 
   // ===== 游戏入口点击 =====
   function bindGameCards() {
-    document.getElementById('card-gomoku').addEventListener('click', () => {
-      location.href = '/gomoku/hall.html';
-    });
-    document.getElementById('card-chess').addEventListener('click', () => {
-      location.href = '/chinese-chess/hall.html';
-    });
     document.getElementById('card-bbq').addEventListener('click', () => {
       location.href = '/bbq/';
     });
-  }
-
-  // ===== 排行榜 =====
-  function renderRankList(containerId, list) {
-    const el = document.getElementById(containerId);
-    if (!list || list.length === 0) {
-      el.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:16px 0;font-size:13px;">暂无数据</div>';
-      return;
-    }
-
-    el.innerHTML = list.map((item, i) => {
-      const n = i + 1;
-      const cls = n <= 3 ? ` top-${n}` : '';
-      const info = UI.getRankInfo(item.rating);
-      return `
-        <div class="rank-item">
-          <div class="rank-num${cls}">${n <= 3 ? ['&#x1F947;','&#x1F948;','&#x1F949;'][i] : n}</div>
-          <div class="rank-nickname">${escHtml(item.nickname)}</div>
-          <span class="rank-badge ${info.cls}" style="margin-left:4px">${info.name}</span>
-          <div class="rank-score">${item.rating}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  async function loadLeaderboards() {
-    try {
-      const [gomokuData, chessData] = await Promise.all([
-        API.leaderboard.get('gomoku', 5),
-        API.leaderboard.get('chinese-chess', 5),
-      ]);
-      renderRankList('lb-gomoku-list', gomokuData.list || gomokuData);
-      renderRankList('lb-chess-list',  chessData.list  || chessData);
-    } catch (_) {
-      document.getElementById('lb-gomoku-list').innerHTML =
-        '<div style="text-align:center;color:var(--color-text-muted);padding:16px 0;font-size:13px;">加载失败</div>';
-      document.getElementById('lb-chess-list').innerHTML =
-        '<div style="text-align:center;color:var(--color-text-muted);padding:16px 0;font-size:13px;">加载失败</div>';
-    }
-  }
-
-  // ===== 排行榜 Tab 切换 =====
-  function bindLeaderboardTabs() {
-    document.querySelectorAll('.lb-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.lb-panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        const panelId = 'lb-' + (tab.dataset.tab === 'chess' ? 'chess' : 'gomoku');
-        document.getElementById(panelId).classList.add('active');
-      });
-    });
-  }
-
-  // ===== 在线人数（WebSocket 推送，这里用 API 轮询做兜底） =====
-  function loadOnlineCounts() {
-    // 由于在线人数由 WS 推送，这里仅做展示占位
-    // 实际数字由 WS 连接后服务器推送更新
-    document.getElementById('online-gomoku').textContent = '在线';
-    document.getElementById('online-chess').textContent  = '在线';
-  }
-
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
   }
 
   // ===== 初始化 =====
@@ -379,9 +278,6 @@
     renderNav();
     renderUserStatus();
     bindGameCards();
-    bindLeaderboardTabs();
-    loadOnlineCounts();
-    loadLeaderboards();
   }
 
   init();
