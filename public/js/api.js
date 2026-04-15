@@ -7,6 +7,16 @@
 
   const BASE_URL = '/api';
 
+  function toErrorMessage(value, fallback) {
+    if (typeof value === 'string' && value.trim()) return value;
+    if (value && typeof value.message === 'string' && value.message.trim()) return value.message;
+    if (value && typeof value.error === 'string' && value.error.trim()) return value.error;
+    if (value && value.error && typeof value.error.message === 'string' && value.error.message.trim()) {
+      return value.error.message;
+    }
+    return fallback;
+  }
+
   // 核心请求方法
   async function request(method, path, body, opts = {}) {
     const token = root.Auth && root.Auth.getToken();
@@ -49,11 +59,12 @@
     }
 
     if (!res.ok) {
-      const message =
-        (payload && payload.error && payload.error.message) ||
-        payload.message ||
-        payload.error ||
-        `请求失败(${res.status})`;
+      const message = toErrorMessage(
+        payload && payload.error && payload.error.message
+          ? payload.error.message
+          : payload,
+        `请求失败(${res.status})`
+      );
       const err = new Error(message);
       err.code = errorCode || 'REQUEST_FAILED';
       throw err;

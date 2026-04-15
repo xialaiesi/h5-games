@@ -142,13 +142,20 @@
   switchTab(initTab);
 
   // ===== 校验工具 =====
+  function asTextMessage(msg, fallback = '') {
+    if (typeof msg === 'string') return msg;
+    if (msg && typeof msg.message === 'string') return msg.message;
+    if (msg && msg.error && typeof msg.error.message === 'string') return msg.error.message;
+    return fallback;
+  }
+
   function setError(id, msg) {
     const el = document.getElementById(id);
     if (el) {
-      el.textContent = msg;
+      el.textContent = asTextMessage(msg, '');
       const inputId = id.replace('-err', '');
       const input   = document.getElementById(inputId);
-      if (input) input.classList.toggle('error', !!msg);
+      if (input) input.classList.toggle('error', !!asTextMessage(msg, ''));
     }
   }
 
@@ -203,7 +210,7 @@
       Auth.setAuth(res.token, res.user, remember);
       location.href = Auth.getRedirectUrl('/index.html');
     } catch (err) {
-      setError('login-global-err', err.message || '登录失败，请重试');
+      setError('login-global-err', asTextMessage(err, '登录失败，请重试'));
     } finally {
       btn.disabled = false;
       btn.textContent = '登 录';
@@ -281,7 +288,7 @@
         location.href = Auth.getRedirectUrl('/index.html');
       }, 800);
     } catch (err) {
-      setError('reg-global-err', err.message || '注册失败，请重试');
+      setError('reg-global-err', asTextMessage(err, '注册失败，请重试'));
     } finally {
       btn.disabled = false;
       btn.textContent = '注 册';
@@ -339,7 +346,7 @@
         location.href = Auth.getRedirectUrl('/index.html');
       }, 600);
     } catch (err) {
-      setError('reset-global-err', err.message || '重设失败，请重试');
+      setError('reset-global-err', asTextMessage(err, '重设失败，请重试'));
     } finally {
       btn.disabled = false;
       btn.textContent = '重设并登录';

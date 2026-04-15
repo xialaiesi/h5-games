@@ -16,24 +16,45 @@ initDB()
 
 // ===== 创建 Express 应用 =====
 const app = express()
+app.set('trust proxy', true)
 
 // ===== 中间件 =====
 
 // CORS 配置
-const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000')
   .split(',')
   .map(o => o.trim())
+  .filter(Boolean)
 
-app.use(cors({
-  origin(origin, callback) {
-    // 允许无 origin 请求（如 curl、同源）
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error(`CORS: ${origin} 不在允许列表中`))
-    }
-  },
-  credentials: true,
+app.use(cors((req, callback) => {
+  const origin = req.get('origin')
+
+  // 允许无 origin 请求（如 curl、服务端调用）
+  if (!origin) {
+    return callback(null, { origin: true, credentials: true })
+  }
+
+  const forwardedHost = req.get('x-forwarded-host')
+  const host = forwardedHost || req.get('host')
+  const forwardedProto = req.get('x-forwarded-proto')
+  const proto = forwardedProto || req.protocol || 'http'
+
+  let sameOrigin = false
+  try {
+    const originUrl = new URL(origin)
+    sameOrigin = Boolean(host) && originUrl.host === host && originUrl.protocol === `${proto}:`
+  } catch {
+    sameOrigin = false
+  }
+
+  if (sameOrigin || allowedOrigins.includes(origin)) {
+    return callback(null, { origin: true, credentials: true })
+  }
+
+  const err = new Error(`CORS: ${origin} 不在允许列表中`)
+  err.status = 403
+  err.code = 'CORS_FORBIDDEN'
+  return callback(err)
 }))
 
 // JSON 请求体解析（限制 1MB）
