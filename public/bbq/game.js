@@ -32,6 +32,7 @@ const GRILL_COUNT  = 12;
 const PAN_CAPACITY = 3;
 const TOOL_INIT    = { undo: 3, shuffle: 1, remove: 1, addtime: 1 };
 const COMBO_TEXTS  = ['', '', 'Nice! 🔥', 'Great! 🔥🔥', 'Awesome! ⚡', 'COMBO! 🌟', 'MASTER! 👑'];
+const ORDER_UNLOCK_LEVEL = 11;
 
 // ==================== 工具函数 ====================
 
@@ -52,10 +53,9 @@ const ceil3 = n => Math.ceil(n / 3) * 3;
 // ==================== 关卡配置 ====================
 
 function getLevelCfg(lv) {
-  if (lv <= 3)  return { numTypes: 3,  itemsPerDish: 3,  time: 300, spicyRatio: 0,    orderInterval: 60, orderTime: 50, maxOrders: 1 };
-  if (lv <= 6)  return { numTypes: 4,  itemsPerDish: 4,  time: 280, spicyRatio: 0.3,  orderInterval: 55, orderTime: 45, maxOrders: 1 };
-  if (lv <= 10) return { numTypes: 5,  itemsPerDish: 4,  time: 260, spicyRatio: 0.4,  orderInterval: 50, orderTime: 40, maxOrders: 1 };
-  if (lv <= 15) return { numTypes: 5,  itemsPerDish: 5,  time: 240, spicyRatio: 0.4,  orderInterval: 45, orderTime: 38, maxOrders: 1 };
+  if (lv <= 5)  return { numTypes: 3,  itemsPerDish: 1,  time: 360, spicyRatio: 0,    orderInterval: 0,  orderTime: 0,  maxOrders: 0 };
+  if (lv <= 10) return { numTypes: 4,  itemsPerDish: 2,  time: 320, spicyRatio: 0.15, orderInterval: 0,  orderTime: 0,  maxOrders: 0 };
+  if (lv <= 15) return { numTypes: 5,  itemsPerDish: 3,  time: 280, spicyRatio: 0.25, orderInterval: 60, orderTime: 50, maxOrders: 1 };
   if (lv <= 20) return { numTypes: 6,  itemsPerDish: 5,  time: 220, spicyRatio: 0.4,  orderInterval: 40, orderTime: 35, maxOrders: 1 };
   if (lv <= 25) return { numTypes: 7,  itemsPerDish: 6,  time: 210, spicyRatio: 0.45, orderInterval: 35, orderTime: 32, maxOrders: 2 };
   if (lv <= 30) return { numTypes: 8,  itemsPerDish: 6,  time: 200, spicyRatio: 0.45, orderInterval: 30, orderTime: 28, maxOrders: 2 };
@@ -319,6 +319,7 @@ function addTimeToOrders(sec) {
 function renderOrders() {
   const area = document.getElementById('orders-area');
   if (!area) return;
+  area.style.display = G.level >= ORDER_UNLOCK_LEVEL ? 'flex' : 'none';
   area.innerHTML = '';
   G.orders.forEach(o => {
     const card = document.createElement('div');
@@ -1010,7 +1011,7 @@ const Game = {
     // 延迟一帧后启动
     requestAnimationFrame(() => {
       startTimer();
-      startOrderSystem();
+      if (lv >= ORDER_UNLOCK_LEVEL) startOrderSystem();
     });
   },
 };
