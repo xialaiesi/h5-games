@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="onion-body" x1="19" y1="16" x2="45" y2="49" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E6B4FF"/>
+      <stop offset="1" stop-color="#A95AD8"/>
+    </linearGradient>
+  </defs>
+  <path d="M32 10c3 4 8 8 8 14 0 4-3 7-8 8-5-1-8-4-8-8 0-6 5-10 8-14z" fill="#B77BE5"/>
+  <path d="M17 33c0-10 7-18 15-18s15 8 15 18c0 12-7 21-15 21s-15-9-15-21z" fill="url(#onion-body)"/>
+  <path d="M24 23c-2 3-3 7-3 10 0 8 5 15 11 19M32 18v36M40 23c2 3 3 7 3 10 0 8-5 15-11 19" stroke="#F7E6FF" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+  <path d="M22 35h20" stroke="#7B3FAE" stroke-width="3" stroke-linecap="round" opacity=".35"/>
+</svg>

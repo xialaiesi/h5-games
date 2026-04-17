@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="shrimp-body" x1="15" y1="18" x2="46" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC28B"/>
+      <stop offset="1" stop-color="#E97A4E"/>
+    </linearGradient>
+  </defs>
+  <path d="M47 18c-2 0-6 1-8 4-5-3-12-3-18 0-9 5-12 15-7 24 5 8 15 11 24 6 6-3 10-8 11-14-2 2-5 4-8 4-4 0-7-3-7-7s3-7 7-7c2 0 4 1 6 3 0-5 0-8 0-13z" fill="url(#shrimp-body)"/>
+  <path d="M48 17l6 5-7 2M26 24c-2 1-4 3-5 5M23 33c-1 2-1 4 0 6M27 41c2 2 4 3 7 3" stroke="#BD5330" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="43" cy="28" r="1.5" fill="#5F2B24"/>
+</svg>

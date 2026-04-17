@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="eggplant-body" x1="22" y1="18" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B57AFF"/>
+      <stop offset="1" stop-color="#6826A3"/>
+    </linearGradient>
+  </defs>
+  <path d="M21 21c2-5 7-9 14-9 8 0 15 6 16 15 1 10-6 21-16 28-9-1-17-8-18-17-1-6 1-11 4-17z" fill="url(#eggplant-body)"/>
+  <path d="M17 18c5-3 9-3 14-2-1 4-2 7-5 10-4 0-7-2-9-8z" fill="#53AF65"/>
+  <path d="M27 25c5 3 8 8 8 14" stroke="#E6CCFF" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+  <path d="M25 34h15M24 41h14" stroke="#4B1879" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+</svg>

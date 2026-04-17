@@ -2,12 +2,7 @@
 
 const AuthService = require('../services/AuthService')
 
-/**
- * JWT 验证中间件
- * 从 Authorization: Bearer <token> 头中提取并验证 token
- * 验证成功后将用户信息挂载到 req.user
- */
-function verifyToken(req, res, next) {
+async function verifyToken(req, res, next) {
   const header = req.headers['authorization']
   if (!header || !header.startsWith('Bearer ')) {
     return res.status(401).json({
@@ -19,7 +14,7 @@ function verifyToken(req, res, next) {
   const token = header.slice(7)
 
   try {
-    req.user = AuthService.verify(token)
+    req.user = await AuthService.verify(token)
     next()
   } catch (err) {
     return res.status(401).json({

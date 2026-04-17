@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="chicken-body" x1="16" y1="18" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFCA7A"/>
+      <stop offset="1" stop-color="#D97834"/>
+    </linearGradient>
+  </defs>
+  <path d="M20 26c0-7 6-13 14-13 10 0 18 8 18 18 0 11-8 19-18 19-8 0-14-5-14-13 0-4 1-8 4-11-3-1-4-1-4 0z" fill="url(#chicken-body)"/>
+  <path d="M18 34l-7 2M18 34l-5-7M18 34l-6 7" stroke="#F4E7D2" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="13" cy="28" r="3" fill="#F4E7D2"/>
+  <circle cx="11" cy="38" r="3.2" fill="#F4E7D2"/>
+  <path d="M28 27h15M27 35h14" stroke="#9A4D20" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+</svg>

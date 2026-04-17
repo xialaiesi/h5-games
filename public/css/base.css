@@ -1,7 +1,6 @@
 /* ==================== base.css ====================
    CSS Reset + 全局变量 + 基础样式
-   移动端优先（Mobile First）
-   主题：深色，棋盘风格
+   主题：夜市烧烤 / 炭黑 + 珊瑚 + 琥珀 + 薄荷
 ================================================== */
 
 *, *::before, *::after {
@@ -11,55 +10,55 @@
 }
 
 :root {
-  /* 背景层级 */
-  --color-bg:            #0f0f1a;
-  --color-bg-card:       #16213e;
-  --color-bg-modal:      #1a2448;
-  --color-bg-input:      #0d1230;
-  --color-bg-hover:      rgba(224, 192, 128, 0.06);
+  --color-bg:            #111317;
+  --color-bg-soft:       #181c22;
+  --color-bg-card:       #20252d;
+  --color-bg-modal:      #252b34;
+  --color-bg-input:      #14181f;
+  --color-bg-hover:      rgba(255, 104, 86, 0.08);
 
-  /* 边框 */
-  --color-border:        rgba(224, 192, 128, 0.18);
-  --color-border-focus:  rgba(224, 192, 128, 0.55);
+  --color-border:        rgba(245, 185, 76, 0.18);
+  --color-border-strong: rgba(245, 185, 76, 0.34);
+  --color-border-focus:  rgba(255, 104, 86, 0.72);
 
-  /* 文字 */
-  --color-text:          #e8e8ee;
-  --color-text-muted:    #8a8a9a;
-  --color-text-dim:      #50506a;
+  --color-text:          #f7f3ea;
+  --color-text-muted:    #b9bfca;
+  --color-text-dim:      #717988;
 
-  /* 品牌金色 */
-  --color-gold:          #e0c080;
-  --color-gold-light:    #f0d898;
-  --color-gold-dim:      rgba(224, 192, 128, 0.15);
+  --color-gold:          #f5b94c;
+  --color-gold-light:    #ffd36e;
+  --color-gold-dim:      rgba(245, 185, 76, 0.14);
 
-  /* 功能色 */
-  --color-primary:       #4a7cdc;
-  --color-primary-hover: #5a8cf0;
-  --color-danger:        #e05050;
-  --color-danger-hover:  #f06060;
-  --color-success:       #50c878;
-  --color-warning:       #f0a030;
+  --color-primary:       #ff6856;
+  --color-primary-hover: #ff7d66;
+  --color-accent:        #2dd4bf;
+  --color-accent-dim:    rgba(45, 212, 191, 0.14);
+  --color-berry:         #e75a8a;
+  --color-danger:        #ef5350;
+  --color-danger-hover:  #ff6d6b;
+  --color-success:       #34d399;
+  --color-warning:       #f59e0b;
 
-  /* 段位色 */
-  --rank-novice:         #888;
-  --rank-apprentice:     #50c878;
-  --rank-knight:         #4a7cdc;
-  --rank-master:         #9b59b6;
-  --rank-grandmaster:    #f0a030;
-  --rank-legend:         #e05050;
+  --rank-novice:         #8d96a5;
+  --rank-apprentice:     #34d399;
+  --rank-knight:         #2dd4bf;
+  --rank-master:         #ff8a72;
+  --rank-grandmaster:    #f5b94c;
+  --rank-legend:         #e75a8a;
 
-  /* 布局 */
-  --max-width:           480px;
-  --nav-height:          56px;
-  --border-radius:       12px;
-  --border-radius-sm:    8px;
-  --border-radius-lg:    20px;
-  --border-radius-full:  9999px;
+  --max-width:           520px;
+  --nav-height:          64px;
+  --border-radius:       8px;
+  --border-radius-sm:    6px;
+  --border-radius-lg:    8px;
+  --border-radius-full:  8px;
 
-  /* 动画 */
+  --shadow-soft:         0 10px 28px rgba(0, 0, 0, 0.22);
+  --shadow-card:         0 16px 40px rgba(0, 0, 0, 0.24);
+
   --transition-fast:     0.15s ease;
-  --transition-normal:   0.25s ease;
-  --transition-slow:     0.4s ease;
+  --transition-normal:   0.24s ease;
+  --transition-slow:     0.36s ease;
 }
 
 html {
@@ -69,7 +68,10 @@ html {
 }
 
 body {
-  background: var(--color-bg);
+  background:
+    linear-gradient(180deg, rgba(255, 104, 86, 0.08), transparent 26%),
+    linear-gradient(135deg, rgba(45, 212, 191, 0.06), transparent 34%),
+    linear-gradient(180deg, #121418 0%, #181c22 48%, #111317 100%);
   color: var(--color-text);
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue",
     "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
@@ -79,34 +81,75 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+::selection {
+  background: rgba(255, 104, 86, 0.22);
+  color: var(--color-text);
+}
+
 a {
   color: var(--color-gold);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
-a:hover { color: var(--color-gold-light); }
-
-img { display: block; max-width: 100%; }
-
-button { cursor: pointer; font-family: inherit; border: none; outline: none; }
-
-input, textarea, select { font-family: inherit; outline: none; }
-
-ul, ol { list-style: none; }
-
-h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.3; }
-
-/* 滚动条美化 */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(224, 192, 128, 0.25);
-  border-radius: 2px;
+a:hover {
+  color: var(--color-gold-light);
 }
 
-/* 工具类 */
-.hidden   { display: none !important; }
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  outline: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  outline: none;
+}
+
+button, input, textarea, select, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(255, 104, 86, 0.9);
+  outline-offset: 2px;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 185, 76, 0.28);
+  border-radius: 4px;
+}
+
+.hidden { display: none !important; }
 .invisible { visibility: hidden; }
 
 .text-center  { text-align: center; }
@@ -117,37 +160,65 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.3; }
 .text-sm      { font-size: 13px; }
 .text-xs      { font-size: 12px; }
 
-/* 段位徽章 */
 .rank-badge {
-  display: inline-block;
-  padding: 2px 10px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
   border-radius: var(--border-radius-full);
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.rank-novice      { background: rgba(136,136,136,0.18); color: var(--rank-novice);      border: 1px solid rgba(136,136,136,0.35); }
-.rank-apprentice  { background: rgba(80,200,120,0.13);  color: var(--rank-apprentice);  border: 1px solid rgba(80,200,120,0.35); }
-.rank-knight      { background: rgba(74,124,220,0.13);  color: var(--rank-knight);      border: 1px solid rgba(74,124,220,0.35); }
-.rank-master      { background: rgba(155,89,182,0.13);  color: var(--rank-master);      border: 1px solid rgba(155,89,182,0.35); }
-.rank-grandmaster { background: rgba(240,160,48,0.13);  color: var(--rank-grandmaster); border: 1px solid rgba(240,160,48,0.35); }
-.rank-legend      { background: rgba(224,80,80,0.13);   color: var(--rank-legend);      border: 1px solid rgba(224,80,80,0.35); }
+.rank-novice {
+  background: rgba(141, 150, 165, 0.14);
+  color: var(--rank-novice);
+  border: 1px solid rgba(141, 150, 165, 0.3);
+}
 
-/* 分割线 */
+.rank-apprentice {
+  background: rgba(52, 211, 153, 0.14);
+  color: var(--rank-apprentice);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.rank-knight {
+  background: rgba(45, 212, 191, 0.14);
+  color: var(--rank-knight);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+.rank-master {
+  background: rgba(255, 138, 114, 0.14);
+  color: var(--rank-master);
+  border: 1px solid rgba(255, 138, 114, 0.32);
+}
+
+.rank-grandmaster {
+  background: rgba(245, 185, 76, 0.15);
+  color: var(--rank-grandmaster);
+  border: 1px solid rgba(245, 185, 76, 0.32);
+}
+
+.rank-legend {
+  background: rgba(231, 90, 138, 0.14);
+  color: var(--rank-legend);
+  border: 1px solid rgba(231, 90, 138, 0.3);
+}
+
 .divider {
   height: 1px;
-  background: var(--color-border);
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
   margin: 16px 0;
 }
 
-/* Skeleton 加载占位 */
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0.04) 25%,
-    rgba(255,255,255,0.09) 50%,
-    rgba(255,255,255,0.04) 75%
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.04) 75%
   );
   background-size: 200% 100%;
   animation: skeleton-loading 1.4s infinite;
@@ -156,32 +227,52 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.3; }
 }
 
 @keyframes skeleton-loading {
-  0%   { background-position: 200% 0; }
+  0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* 动画 */
 @keyframes fadeIn {
   from { opacity: 0; }
-  to   { opacity: 1; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

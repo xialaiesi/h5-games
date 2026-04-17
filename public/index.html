@@ -2,196 +2,277 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>疯狂烧烤摊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>烧烤摊</title>
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/components.css">
 <link rel="stylesheet" href="/css/layout.css">
-<style>
-  /* 首页专属样式 */
-  .home-hero {
-    padding: 24px 0 8px;
-    text-align: center;
-  }
-
-  .home-hero-title {
-    font-size: 32px;
-    font-weight: 800;
-    color: var(--color-gold);
-    letter-spacing: 8px;
-    margin-bottom: 4px;
-  }
-
-  .home-hero-sub {
-    font-size: 13px;
-    color: var(--color-text-muted);
-    letter-spacing: 2px;
-  }
-
-  /* 用户状态条 */
-  .user-status-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-sm);
-    margin-bottom: 20px;
-    font-size: 13px;
-    color: var(--color-text-muted);
-  }
-
-  .user-status-bar.logged {
-    color: var(--color-text);
-  }
-
-  .user-status-name {
-    font-weight: 600;
-    color: var(--color-gold);
-    font-size: 15px;
-  }
-
-  .user-status-rating {
-    color: var(--color-text-muted);
-    font-size: 12px;
-  }
-
-  .home-summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  .summary-item {
-    padding: 14px 12px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-sm);
-    text-align: center;
-  }
-
-  .summary-value {
-    display: block;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--color-gold);
-    margin-bottom: 4px;
-  }
-
-  .summary-label {
-    font-size: 12px;
-    color: var(--color-text-muted);
-  }
-
-  /* 底部导航 */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(15,15,26,0.95);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid var(--color-border);
-    display: flex;
-    z-index: 50;
-  }
-
-  .bottom-nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 8px 0;
-    font-size: 11px;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    transition: color var(--transition-fast);
-    -webkit-tap-highlight-color: transparent;
-    text-decoration: none;
-  }
-
-  .bottom-nav-item.active { color: var(--color-gold); }
-
-  .bottom-nav-icon { font-size: 22px; line-height: 1; }
-</style>
 </head>
 <body>
 
-<!-- 顶部导航 -->
 <nav class="navbar">
   <div class="navbar-inner">
-    <div class="navbar-logo">烧烤摊<span>BBQ</span></div>
-    <div class="navbar-actions" id="nav-actions">
-      <!-- 动态渲染：登录/注册 或 用户名+退出 -->
-    </div>
+    <a class="navbar-logo-link" href="/index.html" aria-label="返回首页">
+      <span class="navbar-brand-mark" aria-hidden="true">
+        <img src="/bbq/assets/grill.png" alt="" width="320" height="320">
+      </span>
+      <span class="navbar-logo">烧烤摊<span>BBQ PUZZLE</span></span>
+    </a>
+    <div class="navbar-actions" id="nav-actions"></div>
   </div>
 </nav>
 
-<!-- 主内容 -->
-<div class="page">
-  <div class="page-content">
+<main class="page">
+  <div class="page-content home-page">
+    <section class="home-hero" aria-labelledby="hero-title">
+      <div class="home-hero-copy">
+        <div class="hero-kicker">夜市营业中</div>
+        <h1 class="home-hero-title" id="hero-title">今晚开烤</h1>
+        <p class="home-hero-sub" id="hero-subtitle">继续开烤，顺手逛一圈商城、好友、背包和活动。</p>
 
-    <!-- Hero 标题 -->
-    <div class="home-hero">
-      <div class="home-hero-title">烧 烤 摊</div>
-      <div class="home-hero-sub">登录后自动同步你的闯关进度</div>
-    </div>
-
-    <!-- 用户状态条（登录后显示） -->
-    <div class="user-status-bar" id="user-status-bar" style="display:none">
-      <span class="online-dot"></span>
-      <span id="status-name" class="user-status-name"></span>
-      <span id="status-rank"></span>
-      <span style="flex:1"></span>
-      <span id="status-rating" class="user-status-rating"></span>
-    </div>
-
-    <!-- 游戏入口 -->
-    <div class="home-section">
-      <div class="section-title">开始营业</div>
-      <div class="game-cards">
-        <div class="game-card game-card-wide card-clickable" id="card-bbq">
-          <div class="game-card-icon">🔥</div>
-          <div class="game-card-copy">
-            <div class="game-card-name">疯狂烧烤摊</div>
-            <div class="game-card-online" id="bbq-entry-status">单机闯关 · 账号存档</div>
+        <div class="home-summary" aria-label="当前摊位概览">
+          <div class="summary-item">
+            <span class="summary-label">关卡</span>
+            <span class="summary-value" id="home-level">第1关</span>
           </div>
-          <div class="game-card-arrow">进入 →</div>
+          <div class="summary-item">
+            <span class="summary-label">积分</span>
+            <span class="summary-value" id="home-score">0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">金币</span>
+            <span class="summary-value" id="home-coins">0</span>
+          </div>
+        </div>
+
+        <div class="text-xs text-muted mt-12" id="hero-status-title">摊位情报</div>
+        <div class="text-sm text-muted mt-4" id="hero-status-subtitle">登录后同步进度，随时接着烤。</div>
+        <div class="flex flex-wrap gap-8 mt-12" id="hero-chip-row">
+          <span class="home-chip home-chip--gold">热闹开局</span>
+          <span class="home-chip home-chip--mint">先打榜</span>
+          <span class="home-chip home-chip--berry">去补货</span>
+        </div>
+
+        <div class="flex flex-wrap gap-8 mt-16">
+          <a href="/bbq/" class="btn btn-gold" aria-label="继续开烤">继续开烤</a>
+          <a href="#detail-activity" class="btn btn-outline" data-nav-target="activity" aria-label="查看活动">看活动</a>
         </div>
       </div>
-    </div>
 
-    <div class="home-section">
-      <div class="section-title">存档概览</div>
-      <div class="home-summary">
-        <div class="summary-item">
-          <span class="summary-value" id="home-level">第1关</span>
-          <span class="summary-label">当前进度</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-value" id="home-score">0</span>
-          <span class="summary-label">累计积分</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-value" id="home-coins">0</span>
-          <span class="summary-label">金币</span>
+      <div class="home-hero-media">
+        <img src="/bbq/assets/bg.jpg" alt="夜市烧烤摊场景预览" width="800" height="1735" loading="eager">
+      </div>
+    </section>
+
+    <section class="user-status-strip hidden" id="user-status-bar" aria-live="polite">
+      <div class="user-status-main">
+        <span class="online-dot" aria-hidden="true"></span>
+        <div class="user-status-stack">
+          <span id="status-name" class="user-status-name"></span>
+          <span id="status-rank"></span>
         </div>
       </div>
-    </div>
+      <span id="status-rating" class="user-status-rating"></span>
+    </section>
 
-  </div><!-- /page-content -->
-</div><!-- /page -->
+    <section class="home-section home-hub" aria-labelledby="hub-title">
+      <div class="section-title" id="hub-title">摊位中枢</div>
+      <p class="text-sm text-muted mb-12">四个模块都在这儿，点一下就进状态。</p>
 
-<!-- 底部导航 -->
-<nav class="bottom-nav">
-  <a class="bottom-nav-item active" href="/index.html">
-    <span class="bottom-nav-icon">&#x1F3E0;</span>
+      <div class="home-hub-grid" id="hub-grid">
+        <button class="hub-card hub-card--shop" type="button" data-module="shop" aria-label="打开商城">
+          <span class="hub-card__badge home-chip home-chip--gold">商城</span>
+          <div class="hub-card__title">补给上新</div>
+          <div class="hub-card__sub">补撒料、提灯牌、换一轮更稳的开局。</div>
+          <div class="hub-card__foot">
+            <span class="hub-card__value">热卖 4 档</span>
+            <span class="hub-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M5 7h14l-1.4 7.2a2 2 0 01-2 1.6H8.4a2 2 0 01-2-1.6L5 7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M8 7a4 4 0 018 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </div>
+          <div class="hub-card__meta" id="hub-shop-meta">金币充足时先看货。</div>
+        </button>
+
+        <button class="hub-card hub-card--friend" type="button" data-module="friends" aria-label="打开好友">
+          <span class="hub-card__badge home-chip home-chip--mint">好友</span>
+          <div class="hub-card__title">摊友热榜</div>
+          <div class="hub-card__sub">看谁手速快，顺手找几个一起冲分。</div>
+          <div class="hub-card__foot">
+            <span class="hub-card__value">榜单在线</span>
+            <span class="hub-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M16 17c1.7 0 3.1.9 4 2.5M4 19.5c.9-1.6 2.3-2.5 4-2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M12 14c-2.8 0-5 2.2-5 5v1h10v-1c0-2.8-2.2-5-5-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M12 12a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" stroke-width="1.8"/>
+              </svg>
+            </span>
+          </div>
+          <div class="hub-card__meta" id="hub-friends-meta">榜单在线，互动入口已开。</div>
+        </button>
+
+        <button class="hub-card hub-card--bag" type="button" data-module="backpack" aria-label="打开背包">
+          <span class="hub-card__badge home-chip home-chip--coral">背包</span>
+          <div class="hub-card__title">库存整理</div>
+          <div class="hub-card__sub">商城补货和闯关资源，都会在这里归拢。</div>
+          <div class="hub-card__foot">
+            <span class="hub-card__value">随进度同步</span>
+            <span class="hub-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M7 7.5h10a2 2 0 012 2V18a2 2 0 01-2 2H7a2 2 0 01-2-2V9.5a2 2 0 012-2z" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M9 7.5a3 3 0 016 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </div>
+          <div class="hub-card__meta" id="hub-backpack-meta">库存状态随进度同步。</div>
+        </button>
+
+        <button class="hub-card hub-card--event" type="button" data-module="activity" aria-label="打开活动">
+          <span class="hub-card__badge home-chip home-chip--berry">活动</span>
+          <div class="hub-card__title">限时任务</div>
+          <div class="hub-card__sub">开一局、拿三星、冲金币，节奏跟着活动走。</div>
+          <div class="hub-card__foot">
+            <span class="hub-card__value">每小时刷新</span>
+            <span class="hub-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M7 4h10M12 4v4M8.5 8h7L18 11.5V20H6v-8.5L8.5 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M10 13h4M10 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </div>
+          <div class="hub-card__meta" id="hub-activity-meta">倒计时在转，任务也在刷新。</div>
+        </button>
+      </div>
+    </section>
+
+    <section class="home-section" aria-labelledby="bbq-title">
+      <div class="section-title" id="bbq-title">烧烤挑战</div>
+      <p class="text-sm text-muted mb-12">继续开烤，进度会记住你。</p>
+
+      <div class="card game-card game-card-wide card-clickable" id="card-bbq" role="button" tabindex="0" aria-label="进入疯狂烧烤摊">
+        <div class="game-card-thumb" aria-hidden="true">
+          <img src="/bbq/assets/grill-spicy.png" alt="" width="320" height="320" loading="lazy">
+        </div>
+        <div class="game-card-copy">
+          <div class="game-card-name">疯狂烧烤摊</div>
+          <div class="game-card-desc">手感轻快的消除闯关，账号独立存档。</div>
+          <div class="game-card-online" id="bbq-entry-status">登录后自动同步进度</div>
+        </div>
+        <div class="game-card-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M8 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section" id="detail-shop" aria-labelledby="shop-title">
+      <div class="section-title" id="shop-title">商城推荐</div>
+      <article class="card home-module">
+        <div class="home-module-head">
+          <div>
+            <div class="home-module-title">跟着你的关卡和金币，先看几样顺手货。</div>
+            <div class="home-module-subtitle">先看看货，再决定要不要补一轮。</div>
+          </div>
+          <button class="btn btn-outline btn-sm home-module-action" type="button" data-module-open="shop" aria-label="打开商城详情">展开</button>
+        </div>
+        <div class="home-list" id="shop-list"></div>
+      </article>
+    </section>
+
+    <section class="home-section" id="detail-friends" aria-labelledby="friends-title">
+      <div class="section-title" id="friends-title">好友榜</div>
+      <article class="card home-module">
+        <div class="home-module-head">
+          <div>
+            <div class="home-module-title">摊友都在这儿，榜上能看到节奏。</div>
+            <div class="home-module-subtitle">打榜、对线、看看谁先把摊位炒热。</div>
+          </div>
+          <button class="btn btn-outline btn-sm home-module-action" type="button" data-module-open="friends" aria-label="打开好友详情">展开</button>
+        </div>
+        <div class="home-leaderboard" id="friends-list"></div>
+      </article>
+    </section>
+
+    <section class="home-section" id="detail-backpack" aria-labelledby="backpack-title">
+      <div class="section-title" id="backpack-title">背包库存</div>
+      <article class="card home-module">
+        <div class="home-module-head">
+          <div>
+            <div class="home-module-title">商城补货和闯关资源，都会汇进你的摊位家底。</div>
+            <div class="home-module-subtitle">买过什么、攒了多少，一眼就能看出来。</div>
+          </div>
+          <button class="btn btn-outline btn-sm home-module-action" type="button" data-module-open="backpack" aria-label="打开背包详情">展开</button>
+        </div>
+        <div class="home-inventory-grid" id="backpack-grid"></div>
+      </article>
+    </section>
+
+    <section class="home-section" id="detail-activity" aria-labelledby="activity-title">
+      <div class="section-title" id="activity-title">限时活动</div>
+      <article class="card home-module">
+        <div class="home-module-head">
+          <div>
+            <div class="home-module-title">双倍加热，任务一条条往前推。</div>
+            <div class="home-module-subtitle">节奏和奖励都在动，别让它空转。</div>
+          </div>
+          <button class="btn btn-outline btn-sm home-module-action" type="button" data-module-open="activity" aria-label="打开活动详情">展开</button>
+        </div>
+        <div class="home-module-meta" id="activity-summary"></div>
+        <div class="home-detail-list" id="activity-list"></div>
+      </article>
+    </section>
+  </div>
+</main>
+
+<nav class="bottom-nav" aria-label="主导航">
+  <a class="bottom-nav-item active" href="/index.html" aria-current="page">
+    <span class="bottom-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M4 11.5L12 5l8 6.5V20H4v-8.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M9 20v-5h6v5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      </svg>
+    </span>
     <span>首页</span>
   </a>
-  <a class="bottom-nav-item" href="/profile.html" id="nav-profile-link">
-    <span class="bottom-nav-icon">&#x1F464;</span>
+  <a class="bottom-nav-item" href="#detail-shop" data-nav-target="shop" aria-label="直达商城">
+    <span class="bottom-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M5 7h14l-1.2 10H6.2L5 7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M9 7a3 3 0 016 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span>商城</span>
+  </a>
+  <a class="bottom-nav-item" href="#detail-friends" data-nav-target="friends" aria-label="直达好友">
+    <span class="bottom-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M16 17c1.7 0 3.1.9 4 2.5M4 19.5c.9-1.6 2.3-2.5 4-2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 14c-2.8 0-5 2.2-5 5v1h10v-1c0-2.8-2.2-5-5-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+    </span>
+    <span>好友</span>
+  </a>
+  <a class="bottom-nav-item" href="#detail-activity" data-nav-target="activity" aria-label="直达活动">
+    <span class="bottom-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M7 4h10M12 4v4M8.5 8h7L18 11.5V20H6v-8.5L8.5 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M10 13h4M10 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span>活动</span>
+  </a>
+  <a class="bottom-nav-item" href="/profile.html" id="nav-profile-link" aria-label="前往我的">
+    <span class="bottom-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M5 20a7 7 0 0114 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
     <span>我的</span>
   </a>
 </nav>
@@ -203,14 +284,393 @@
 (function () {
   'use strict';
 
-  // ===== 导航栏渲染 =====
+  const FALLBACK_SHOP_CATALOG = [
+    {
+      itemKey: 'secret-seasoning',
+      name: '秘制撒料',
+      tag: '补给',
+      description: '更稳的开局，适合连续开烤。',
+      price: 24,
+    },
+    {
+      itemKey: 'grill-upgrade',
+      name: '烤架升级',
+      tag: '强化',
+      description: '火候更顺，适合冲一段连续通关。',
+      price: 42,
+    },
+    {
+      itemKey: 'night-sign',
+      name: '夜摊灯牌',
+      tag: '装扮',
+      description: '摊位更亮，气势先拉满。',
+      price: 68,
+    },
+    {
+      itemKey: 'combo-drink',
+      name: '拼单饮料',
+      tag: '限购',
+      description: '活动期常备，连打几局更带劲。',
+      price: 16,
+    },
+  ];
+
+  const state = {
+    user: null,
+    progress: createDefaultProgress(),
+    leaderboard: [],
+    shopState: createDefaultShopState(),
+    friendState: createDefaultFriendState(),
+    moduleData: null,
+    pendingShopActions: {},
+    pendingFriendActions: {},
+    timerId: null,
+  };
+
+  const INVENTORY_ICONS = {
+    '秘制撒料': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M9 4h6v4l2 3v7a2 2 0 01-2 2H9a2 2 0 01-2-2v-7l2-3V4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M10 12h4M10.5 15.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    `,
+    '烤架升级': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M6 9h12l-1.2 5.6a2 2 0 01-2 1.6H9.2a2 2 0 01-2-1.6L6 9z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M8.5 9V6M12 9V5M15.5 9V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M9 19l-1.2 1.5M15 19l1.2 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    `,
+    '夜摊灯牌': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M8 6h8a2 2 0 012 2v4a2 2 0 01-2 2H8V6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M8 10H5a1 1 0 01-1-1V8a1 1 0 011-1h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 14v4M10 18h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    `,
+    '拼单饮料': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M8 6h8l-1 11a2 2 0 01-2 2h-2a2 2 0 01-2-2L8 6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M10 4h4M14 4l3-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    `,
+    '炭火券': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M8 5h8M7 9h10M6 13h12M8 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    `,
+    '调味包': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M9 4h6v4l2 3v7a2 2 0 01-2 2H9a2 2 0 01-2-2v-7l2-3V4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M10 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    `,
+    '保温桶': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M7 7h10v11a2 2 0 01-2 2H9a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M9 7V5h6v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    `,
+    '星章贴纸': `
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 4l2.2 4.5 5 .7-3.6 3.5.8 5-4.4-2.3-4.4 2.3.8-5L4.8 9.2l5-.7L12 4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      </svg>
+    `,
+  };
+
+  function createDefaultProgress() {
+    return {
+      maxLevel: 1,
+      totalScore: 0,
+      coins: 0,
+      levelStars: {},
+      starTotal: 0,
+      lastPlayed: null,
+    };
+  }
+
+  function createDefaultShopState(coins = 0) {
+    const safeCoins = Math.max(0, toNumber(coins, 0));
+    return {
+      coins: safeCoins,
+      catalog: FALLBACK_SHOP_CATALOG.map(item => ({
+        ...item,
+        owned: 0,
+        affordable: safeCoins >= item.price,
+      })),
+      inventory: [],
+      history: [],
+      summary: {
+        ownedKinds: 0,
+        ownedCount: 0,
+        spentTotal: 0,
+      },
+    };
+  }
+
+  function createDefaultFriendState() {
+    return {
+      friends: [],
+      incomingRequests: [],
+      outgoingRequests: [],
+      summary: {
+        friendCount: 0,
+        incomingCount: 0,
+        outgoingCount: 0,
+      },
+    };
+  }
+
+  function escapeHTML(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function toNumber(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function normalizeProgress(source) {
+    const bbq = source && source.bbq ? source.bbq : (source || {});
+    const rawLevelStars = bbq.levelStars || bbq.level_stars || {};
+    let levelStars = rawLevelStars;
+
+    if (typeof rawLevelStars === 'string') {
+      try {
+        levelStars = JSON.parse(rawLevelStars);
+      } catch (_) {
+        levelStars = {};
+      }
+    }
+
+    const starTotal = Object.keys(levelStars).reduce(
+      (sum, key) => sum + clamp(toNumber(levelStars[key]), 0, 3),
+      0
+    );
+
+    return {
+      maxLevel: Math.max(1, toNumber(bbq.maxLevel ?? bbq.max_level, 1)),
+      totalScore: Math.max(0, toNumber(bbq.totalScore ?? bbq.total_score, 0)),
+      coins: Math.max(0, toNumber(bbq.resources && bbq.resources.coins, bbq.coins || 0)),
+      levelStars,
+      starTotal,
+      lastPlayed: bbq.lastPlayed || bbq.last_played || null,
+    };
+  }
+
+  function getCurrentUser() {
+    return Auth.isLoggedIn() ? (Auth.getUser() || null) : null;
+  }
+
+  function formatNumber(value) {
+    return new Intl.NumberFormat('zh-CN').format(toNumber(value, 0));
+  }
+
+  function formatCountdown(ms) {
+    const safe = Math.max(0, ms);
+    const total = Math.floor(safe / 1000);
+    const h = String(Math.floor(total / 3600)).padStart(2, '0');
+    const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }
+
+  function getNextEventEnd() {
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setMinutes(0, 0, 0);
+    nextHour.setHours(nextHour.getHours() + 1);
+    return nextHour.getTime();
+  }
+
+  function getTagClass(tag) {
+    if (tag === '强化') return 'home-detail-tag--mint';
+    if (tag === '装扮') return 'home-detail-tag--coral';
+    if (tag === '限购') return 'home-detail-tag--berry';
+    return 'home-detail-tag--gold';
+  }
+
+  function getRedirectUrl() {
+    const currentPath = location.pathname + location.search + location.hash;
+    return '/login.html?redirect=' + encodeURIComponent(currentPath);
+  }
+
+  function ensureLoggedIn(message) {
+    if (Auth.isLoggedIn()) return true;
+    UI.toast(message || '请先登录后再操作', 'warning');
+    setTimeout(() => {
+      location.href = getRedirectUrl();
+    }, 240);
+    return false;
+  }
+
+  function normalizeShopState(source) {
+    const base = source || {};
+    const coins = Math.max(0, toNumber(base.coins, state.progress.coins || 0));
+    const inventory = Array.isArray(base.inventory)
+      ? base.inventory.map(item => ({
+          itemKey: item && item.itemKey ? String(item.itemKey) : '',
+          name: item && item.name ? item.name : '未命名道具',
+          tag: item && item.tag ? item.tag : '补给',
+          quantity: Math.max(0, toNumber(item && item.quantity, 0)),
+          totalSpent: Math.max(0, toNumber(item && item.totalSpent, 0)),
+          createdAt: item && item.createdAt ? item.createdAt : null,
+          updatedAt: item && item.updatedAt ? item.updatedAt : null,
+        }))
+      : [];
+    const ownedMap = new Map(inventory.map(item => [item.itemKey, item.quantity]));
+    const catalogSource = Array.isArray(base.catalog) && base.catalog.length
+      ? base.catalog
+      : FALLBACK_SHOP_CATALOG;
+    const catalog = catalogSource.map(item => {
+      const price = Math.max(0, toNumber(item && item.price, 0));
+      return {
+        itemKey: item && item.itemKey ? String(item.itemKey) : '',
+        name: item && item.name ? item.name : '未命名商品',
+        tag: item && item.tag ? item.tag : '补给',
+        description: item && item.description ? item.description : '',
+        price,
+        owned: Math.max(0, toNumber(item && item.owned, ownedMap.get(item && item.itemKey ? item.itemKey : '') || 0)),
+        affordable: coins >= price,
+      };
+    });
+    const history = Array.isArray(base.history)
+      ? base.history.map(item => ({
+          itemKey: item && item.itemKey ? String(item.itemKey) : '',
+          name: item && item.name ? item.name : '未命名商品',
+          tag: item && item.tag ? item.tag : '补给',
+          unitPrice: Math.max(0, toNumber(item && item.unitPrice, 0)),
+          quantity: Math.max(0, toNumber(item && item.quantity, 0)),
+          totalPrice: Math.max(0, toNumber(item && item.totalPrice, 0)),
+          createdAt: item && item.createdAt ? item.createdAt : null,
+        }))
+      : [];
+    const summary = {
+      ownedKinds: Math.max(0, toNumber(base.summary && base.summary.ownedKinds, inventory.length)),
+      ownedCount: Math.max(0, toNumber(base.summary && base.summary.ownedCount, inventory.reduce((sum, item) => sum + item.quantity, 0))),
+      spentTotal: Math.max(0, toNumber(base.summary && base.summary.spentTotal, inventory.reduce((sum, item) => sum + item.totalSpent, 0))),
+    };
+
+    return {
+      coins,
+      catalog,
+      inventory,
+      history,
+      summary,
+    };
+  }
+
+  function normalizeFriendRow(row) {
+    return {
+      id: row && row.id != null ? String(row.id) : '',
+      userId: row && row.userId != null ? String(row.userId) : '',
+      nickname: row && row.nickname ? row.nickname : '匿名摊主',
+      avatar: row && row.avatar ? row.avatar : '',
+      maxLevel: Math.max(1, toNumber(row && (row.maxLevel ?? row.max_level), 1)),
+      totalScore: Math.max(0, toNumber(row && (row.totalScore ?? row.total_score), 0)),
+      createdAt: row && (row.createdAt || row.created_at) ? (row.createdAt || row.created_at) : null,
+      acceptedAt: row && (row.acceptedAt || row.accepted_at) ? (row.acceptedAt || row.accepted_at) : null,
+    };
+  }
+
+  function normalizeFriendState(source) {
+    const base = source || {};
+    const friends = Array.isArray(base.friends) ? base.friends.map(normalizeFriendRow) : [];
+    const incomingRequests = Array.isArray(base.incomingRequests)
+      ? base.incomingRequests.map(normalizeFriendRow)
+      : [];
+    const outgoingRequests = Array.isArray(base.outgoingRequests)
+      ? base.outgoingRequests.map(normalizeFriendRow)
+      : [];
+
+    return {
+      friends,
+      incomingRequests,
+      outgoingRequests,
+      summary: {
+        friendCount: Math.max(0, toNumber(base.summary && base.summary.friendCount, friends.length)),
+        incomingCount: Math.max(0, toNumber(base.summary && base.summary.incomingCount, incomingRequests.length)),
+        outgoingCount: Math.max(0, toNumber(base.summary && base.summary.outgoingCount, outgoingRequests.length)),
+      },
+    };
+  }
+
+  function syncCoins(coins) {
+    const safeCoins = Math.max(0, toNumber(coins, state.progress.coins || 0));
+    state.progress = Object.assign({}, state.progress, { coins: safeCoins });
+
+    if (state.shopState) {
+      state.shopState = Object.assign({}, state.shopState, {
+        coins: safeCoins,
+        catalog: (state.shopState.catalog || []).map(item => ({
+          ...item,
+          affordable: safeCoins >= item.price,
+        })),
+      });
+    }
+
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+
+    const nextBbq = Object.assign({}, currentUser.bbq || {}, {
+      resources: Object.assign({}, (currentUser.bbq && currentUser.bbq.resources) || {}, {
+        coins: safeCoins,
+      }),
+    });
+    const updated = Auth.updateUser({ bbq: nextBbq });
+    state.user = updated || currentUser;
+  }
+
+  function buildDerivedData(progress, leaderboard, user) {
+    const coins = progress.coins;
+    const level = progress.maxLevel;
+    const score = progress.totalScore;
+    const stars = progress.starTotal;
+
+    const currentUserId = user && user.id ? String(user.id) : '';
+    const leaderboardRows = (leaderboard || []).slice(0, 8).map((row, index) => {
+      const rowUserId = row && row.userId != null ? String(row.userId) : '';
+      return {
+        rank: index + 1,
+        nickname: row && row.nickname ? row.nickname : '匿名摊主',
+        level: Math.max(1, toNumber(row && (row.max_level ?? row.maxLevel), 1)),
+        score: Math.max(0, toNumber(row && (row.total_score ?? row.totalScore), 0)),
+        isMe: currentUserId && rowUserId === currentUserId,
+      };
+    });
+
+    const meRank = leaderboardRows.find(item => item.isMe);
+
+    const activityTasks = [
+      { name: '完成 1 局', desc: '把摊位热起来。', done: level > 1 || score > 0, value: `${Math.min(Math.max(0, level - 1), 1)}/1` },
+      { name: '拿到 3 星', desc: '把手感打顺。', done: stars >= 3, value: `${Math.min(3, stars)}/3` },
+      { name: '攒够 60 金币', desc: '活动补货更从容。', done: coins >= 60, value: `${Math.min(60, coins)}/60` },
+    ];
+
+    return {
+      leaderboardRows,
+      meRank,
+      activityTasks,
+      countdown: getNextEventEnd() - Date.now(),
+    };
+  }
+
   function renderNav() {
     const actionsEl = document.getElementById('nav-actions');
     if (Auth.isLoggedIn()) {
-      const user = Auth.getUser();
+      const user = getCurrentUser();
       actionsEl.innerHTML = `
-        <span style="font-size:13px;color:var(--color-text-muted);">${user ? user.nickname : ''}</span>
-        <button class="btn btn-ghost btn-sm" id="btn-logout">退出</button>
+        <span class="navbar-user-name">${escapeHTML(user ? user.nickname : '')}</span>
+        <button class="btn btn-ghost btn-sm" id="btn-logout" type="button">退出</button>
       `;
       document.getElementById('btn-logout').addEventListener('click', handleLogout);
     } else {
@@ -221,66 +681,906 @@
     }
   }
 
-  // ===== 用户状态条 =====
-  function renderUserStatus() {
-    if (!Auth.isLoggedIn()) {
-      document.getElementById('bbq-entry-status').textContent = '登录后保存进度';
+  function renderStatus() {
+    const bar = document.getElementById('user-status-bar');
+    const heroTitle = document.getElementById('hero-title');
+    const heroSubtitle = document.getElementById('hero-subtitle');
+    const heroStatusTitle = document.getElementById('hero-status-title');
+    const heroStatusSubtitle = document.getElementById('hero-status-subtitle');
+    const heroChipRow = document.getElementById('hero-chip-row');
+    const user = getCurrentUser();
+
+    if (!Auth.isLoggedIn() || !user) {
+      bar.classList.add('hidden');
+      document.getElementById('status-name').textContent = '';
+      document.getElementById('status-rank').textContent = '';
+      document.getElementById('status-rating').textContent = '';
+      document.getElementById('bbq-entry-status').textContent = '登录后自动同步进度';
       document.getElementById('home-level').textContent = '第1关';
       document.getElementById('home-score').textContent = '0';
       document.getElementById('home-coins').textContent = '0';
+      document.getElementById('hub-shop-meta').textContent = '登录后可直接购买，记录会入库。';
+      document.getElementById('hub-friends-meta').textContent = '登录后可加好友，关系会独立保存。';
+      document.getElementById('hub-backpack-meta').textContent = '购买记录和进度资源都会汇总。';
+      document.getElementById('hub-activity-meta').textContent = '倒计时在转，任务也在刷新。';
+      heroTitle.textContent = '今晚开烤';
+      heroSubtitle.textContent = '继续开烤，顺手逛一圈商城、好友、背包和活动。';
+      heroStatusTitle.textContent = '摊位情报';
+      heroStatusSubtitle.textContent = '登录后同步进度、购买和好友关系。';
+      heroChipRow.innerHTML = `
+        <span class="home-chip home-chip--gold">热闹开局</span>
+        <span class="home-chip home-chip--mint">先打榜</span>
+        <span class="home-chip home-chip--berry">去补货</span>
+      `;
       return;
     }
-    const user = Auth.getUser();
-    if (!user) return;
 
-    const bar = document.getElementById('user-status-bar');
-    bar.style.display = 'flex';
-    document.getElementById('status-name').textContent = user.nickname;
+    const progress = state.progress;
+    bar.classList.remove('hidden');
+    document.getElementById('status-name').textContent = user.nickname || '';
+    document.getElementById('status-rank').innerHTML = `<span class="status-chip">第 ${progress.maxLevel} 关</span>`;
+    document.getElementById('status-rating').textContent = `金币 ${formatNumber(progress.coins)}`;
+    document.getElementById('bbq-entry-status').textContent = `继续第 ${progress.maxLevel} 关，金币 ${formatNumber(progress.coins)}`;
+    document.getElementById('home-level').textContent = `第${progress.maxLevel}关`;
+    document.getElementById('home-score').textContent = formatNumber(progress.totalScore);
+    document.getElementById('home-coins').textContent = formatNumber(progress.coins);
+    heroTitle.textContent = `${user.nickname || '摊主'}，继续开烤`;
+    heroSubtitle.textContent = '进度、购买和好友关系已经同步，商城、背包、活动都会跟着你刷新。';
+    heroStatusTitle.textContent = `${user.nickname || '摊主'} 的摊位`;
+    heroStatusSubtitle.textContent = `第 ${progress.maxLevel} 关，累计 ${formatNumber(progress.totalScore)} 分。`;
+    heroChipRow.innerHTML = `
+      <span class="home-chip home-chip--gold">金币 ${formatNumber(progress.coins)}</span>
+      <span class="home-chip home-chip--mint">星数 ${progress.starTotal}</span>
+      <span class="home-chip home-chip--berry">继续第 ${progress.maxLevel} 关</span>
+    `;
+  }
 
-    // 尝试从 API 获取最新积分（可失败）
-    API.users.me().then(data => {
-      const bbq = data.bbq || {};
-      const maxLevel = bbq.maxLevel || 1;
-      const totalScore = bbq.totalScore || 0;
-      const coins = (bbq.resources && bbq.resources.coins) || 0;
+  function getShopPreviewHTML(limit = 4) {
+    const loggedIn = Auth.isLoggedIn();
+    const shop = state.shopState || createDefaultShopState(state.progress.coins);
+    const items = (shop.catalog || []).slice(0, limit);
 
-      document.getElementById('status-rank').innerHTML =
-        `<span style="font-size:12px;color:var(--color-gold)">第 ${maxLevel} 关</span>`;
-      document.getElementById('status-rating').textContent = `金币 ${coins}`;
-      document.getElementById('bbq-entry-status').textContent = `继续第 ${maxLevel} 关 · 金币 ${coins}`;
-      document.getElementById('home-level').textContent = `第${maxLevel}关`;
-      document.getElementById('home-score').textContent = totalScore;
-      document.getElementById('home-coins').textContent = coins;
-      Auth.updateUser({ bbq });
-    }).catch(() => {
-      document.getElementById('status-rating').textContent = '';
+    if (!items.length) {
+      return `<div class="home-empty">商城正在备货，稍后再来看看。</div>`;
+    }
+
+    let html = items.map(item => {
+      const busy = !!state.pendingShopActions[item.itemKey];
+      const canBuy = loggedIn && shop.coins >= item.price;
+      const helperText = loggedIn
+        ? (item.owned > 0 ? `已购 ${item.owned} 件` : '尚未购入')
+        : '登录后可购买';
+      const buttonHtml = loggedIn
+        ? `
+          <button
+            class="btn ${canBuy ? 'btn-gold' : 'btn-outline'} btn-sm"
+            type="button"
+            data-shop-buy="${escapeHTML(item.itemKey)}"
+            ${busy || !canBuy ? 'disabled' : ''}
+          >${escapeHTML(busy ? '购买中...' : (canBuy ? '买 1 个' : '金币不足'))}</button>
+        `
+        : '';
+
+      return `
+        <div class="home-list-item">
+          <div class="home-list-copy">
+            <div class="home-list-title">${escapeHTML(item.name)}</div>
+            <div class="home-list-desc">${escapeHTML(item.description || '顺手补货，开局更稳。')}</div>
+          </div>
+          <div class="home-list-right">
+            <div class="home-list-value">${escapeHTML(formatNumber(item.price))} 金币</div>
+            <span class="home-detail-tag ${getTagClass(item.tag)}">${escapeHTML(item.tag)}</span>
+            <div class="home-row-actions">
+              <span class="home-list-note">${escapeHTML(helperText)}</span>
+              ${buttonHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (loggedIn && shop.history.length) {
+      html += `
+        <div class="home-list-divider"></div>
+        <div class="home-row-label">最近购买</div>
+        ${shop.history.slice(0, 2).map(item => `
+          <div class="home-list-item">
+            <div class="home-list-copy">
+              <div class="home-list-title">${escapeHTML(item.name)}</div>
+              <div class="home-list-desc">${escapeHTML(`${item.quantity} 件 · ${UI.formatTime(item.createdAt) || '刚刚入库'}`)}</div>
+            </div>
+            <div class="home-list-right">
+              <div class="home-list-value">${escapeHTML(formatNumber(item.totalPrice))} 金币</div>
+              <span class="home-detail-tag ${getTagClass(item.tag)}">${escapeHTML(item.tag)}</span>
+            </div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    return html;
+  }
+
+  function renderShopDetail() {
+    const container = document.getElementById('shop-list');
+    container.innerHTML = getShopPreviewHTML(4);
+  }
+
+  function renderLeaderboardPreview(rows, message) {
+    if (!rows.length) {
+      return `
+        <div class="home-empty">${escapeHTML(message || '热榜正在刷新，晚点再来看看。')}</div>
+      `;
+    }
+
+    return rows.map(row => `
+      <div class="home-leaderboard-row">
+        <span class="home-leaderboard-rank">${escapeHTML(row.rank)}</span>
+        <div class="home-leaderboard-copy">
+          <div class="home-leaderboard-name">${escapeHTML(row.nickname)}${row.isMe ? ' · 你' : ''}</div>
+          <div class="home-leaderboard-meta">
+            <span class="home-chip home-chip--muted">第 ${escapeHTML(row.level)} 关</span>
+            <span class="home-chip home-chip--muted">${escapeHTML(formatNumber(row.score))} 分</span>
+            <span class="home-chip ${row.isMe ? 'home-chip--mint' : 'home-chip--gold'}">${row.isMe ? '当前' : '热榜'}</span>
+          </div>
+        </div>
+        <div class="home-leaderboard-score">${escapeHTML(formatNumber(row.score))}</div>
+      </div>
+    `).join('') + `
+      <div class="home-empty">登录后就能直接加摊友，关系会落进账号独立存档。</div>
+    `;
+  }
+
+  function getFriendSuggestions(limit = 4) {
+    const currentUserId = state.user && state.user.id != null ? String(state.user.id) : '';
+    const related = new Set([currentUserId]);
+    [state.friendState.friends, state.friendState.incomingRequests, state.friendState.outgoingRequests]
+      .forEach(list => {
+        (list || []).forEach(item => {
+          if (item && item.userId != null) related.add(String(item.userId));
+        });
+      });
+
+    return (state.leaderboard || [])
+      .map(normalizeFriendRow)
+      .filter(item => item.userId && !related.has(String(item.userId)))
+      .slice(0, limit);
+  }
+
+  function renderFriendRow(kind, row) {
+    const busyKey = String(row.id || row.userId || '');
+    const busy = !!state.pendingFriendActions[busyKey];
+    const badge = kind === 'incoming'
+      ? '<span class="home-chip home-chip--berry">待处理</span>'
+      : kind === 'outgoing'
+        ? '<span class="home-chip home-chip--muted">已发出</span>'
+        : kind === 'suggestion'
+          ? '<span class="home-chip home-chip--gold">可邀请</span>'
+          : '<span class="home-chip home-chip--mint">已好友</span>';
+    const prefix = kind === 'incoming'
+      ? '来'
+      : kind === 'outgoing'
+        ? '发'
+        : kind === 'suggestion'
+          ? '+'
+          : '友';
+
+    let actions = '';
+    if (kind === 'incoming') {
+      actions = `
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          data-friend-action="reject"
+          data-request-id="${escapeHTML(row.id)}"
+          data-friend-name="${escapeHTML(row.nickname)}"
+          ${busy ? 'disabled' : ''}
+        >拒绝</button>
+        <button
+          class="btn btn-gold btn-sm"
+          type="button"
+          data-friend-action="accept"
+          data-request-id="${escapeHTML(row.id)}"
+          data-friend-name="${escapeHTML(row.nickname)}"
+          ${busy ? 'disabled' : ''}
+        >同意</button>
+      `;
+    } else if (kind === 'outgoing') {
+      actions = `
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          data-friend-action="cancel"
+          data-request-id="${escapeHTML(row.id)}"
+          data-friend-name="${escapeHTML(row.nickname)}"
+          ${busy ? 'disabled' : ''}
+        >取消</button>
+      `;
+    } else if (kind === 'suggestion') {
+      actions = `
+        <button
+          class="btn btn-gold btn-sm"
+          type="button"
+          data-friend-action="request"
+          data-user-id="${escapeHTML(row.userId)}"
+          data-friend-name="${escapeHTML(row.nickname)}"
+          ${busy ? 'disabled' : ''}
+        >加好友</button>
+      `;
+    } else {
+      actions = `
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          data-friend-action="remove"
+          data-user-id="${escapeHTML(row.userId)}"
+          data-friend-name="${escapeHTML(row.nickname)}"
+          ${busy ? 'disabled' : ''}
+        >删除</button>
+      `;
+    }
+
+    return `
+      <div class="home-leaderboard-row">
+        <span class="home-leaderboard-rank">${escapeHTML(prefix)}</span>
+        <div class="home-leaderboard-copy">
+          <div class="home-leaderboard-name">${escapeHTML(row.nickname)}</div>
+          <div class="home-leaderboard-meta">
+            <span class="home-chip home-chip--muted">第 ${escapeHTML(row.maxLevel)} 关</span>
+            <span class="home-chip home-chip--muted">${escapeHTML(formatNumber(row.totalScore))} 分</span>
+            ${badge}
+          </div>
+        </div>
+        <div class="home-row-actions">
+          ${actions}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderFriendsDetail() {
+    const container = document.getElementById('friends-list');
+    const data = state.moduleData || buildDerivedData(state.progress, state.leaderboard, state.user);
+
+    if (!Auth.isLoggedIn()) {
+      container.innerHTML = renderLeaderboardPreview(
+        data.leaderboardRows.slice(0, 4),
+        '热榜待刷新'
+      );
+      return;
+    }
+
+    const sections = [];
+    const incoming = state.friendState.incomingRequests || [];
+    const friends = state.friendState.friends || [];
+    const outgoing = state.friendState.outgoingRequests || [];
+    const suggestions = getFriendSuggestions(3);
+
+    if (incoming.length) {
+      sections.push('<div class="home-row-label">收到的邀请</div>');
+      sections.push(incoming.map(row => renderFriendRow('incoming', row)).join(''));
+    }
+
+    if (friends.length) {
+      sections.push('<div class="home-row-label">我的摊友</div>');
+      sections.push(friends.slice(0, 4).map(row => renderFriendRow('friend', row)).join(''));
+    }
+
+    if (outgoing.length) {
+      sections.push('<div class="home-row-label">已发出的请求</div>');
+      sections.push(outgoing.slice(0, 3).map(row => renderFriendRow('outgoing', row)).join(''));
+    }
+
+    if (suggestions.length) {
+      sections.push('<div class="home-row-label">推荐摊友</div>');
+      sections.push(suggestions.map(row => renderFriendRow('suggestion', row)).join(''));
+    }
+
+    if (!sections.length) {
+      container.innerHTML = `
+        <div class="home-empty">还没有好友关系，先从热榜挑几个摊友。</div>
+      `;
+      return;
+    }
+
+    container.innerHTML = sections.join('');
+  }
+
+  function getBackpackEntries() {
+    const purchased = (state.shopState.inventory || []).map(item => ({
+      name: item.name,
+      value: item.quantity,
+      note: `${item.tag} · 累计花费 ${formatNumber(item.totalSpent)} 金币`,
+      sourceLabel: '商城购入',
+      sourceClass: 'home-chip--gold',
+    }));
+    const derived = [
+      {
+        name: '炭火券',
+        value: Math.max(1, Math.floor(state.progress.maxLevel / 2)),
+        note: '按关卡赠送',
+        sourceLabel: '进度结算',
+        sourceClass: 'home-chip--muted',
+      },
+      {
+        name: '调味包',
+        value: Math.max(2, Math.floor(state.progress.coins / 40) + 1),
+        note: '按金币积累',
+        sourceLabel: '进度结算',
+        sourceClass: 'home-chip--muted',
+      },
+      {
+        name: '保温桶',
+        value: Math.max(1, Math.floor(state.progress.totalScore / 500) + 1),
+        note: '按积分整理',
+        sourceLabel: '进度结算',
+        sourceClass: 'home-chip--muted',
+      },
+      {
+        name: '星章贴纸',
+        value: Math.max(1, state.progress.starTotal || Math.floor(state.progress.maxLevel / 3)),
+        note: '按三星数结算',
+        sourceLabel: '进度结算',
+        sourceClass: 'home-chip--muted',
+      },
+    ];
+
+    return purchased.concat(derived);
+  }
+
+  function renderBackpackDetail() {
+    const container = document.getElementById('backpack-grid');
+    const items = getBackpackEntries();
+
+    if (!items.length) {
+      container.innerHTML = `<div class="home-empty">背包还是空的，先去开一局或者补点货。</div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(item => `
+      <div class="home-inventory-item">
+        <span class="home-inventory-icon" aria-hidden="true">${INVENTORY_ICONS[item.name] || ''}</span>
+        <div class="home-inventory-copy">
+          <div class="home-inventory-title">${escapeHTML(item.name)}</div>
+          <div class="home-inventory-desc">${escapeHTML(item.note)}</div>
+          <div class="home-inventory-foot">
+            <span class="home-chip ${escapeHTML(item.sourceClass)}">${escapeHTML(item.sourceLabel)}</span>
+            <span class="home-inventory-count">${escapeHTML(item.value)} 件</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderActivityDetail() {
+    const summary = document.getElementById('activity-summary');
+    const list = document.getElementById('activity-list');
+    const data = state.moduleData || buildDerivedData(state.progress, state.leaderboard, state.user);
+
+    summary.innerHTML = `
+      <span class="home-chip home-chip--countdown" data-countdown-chip>
+        限时
+        <strong data-countdown-value>${escapeHTML(formatCountdown(data.countdown))}</strong>
+      </span>
+      <span class="home-chip home-chip--mint">当前关卡 · 第 ${escapeHTML(state.progress.maxLevel)} 关</span>
+      <span class="home-chip home-chip--gold">累计积分 · ${escapeHTML(formatNumber(state.progress.totalScore))}</span>
+    `;
+
+    list.innerHTML = data.activityTasks.map(task => `
+      <div class="home-detail-list-item">
+        <div>
+          <div class="home-detail-name">${escapeHTML(task.name)}</div>
+          <div class="home-detail-desc">${escapeHTML(task.desc)}</div>
+        </div>
+        <div class="home-detail-side">
+          <span class="home-detail-tag ${task.done ? 'home-detail-tag--mint' : 'home-detail-tag--berry'}">
+            ${escapeHTML(task.done ? '已完成' : task.value)}
+          </span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderModuleMeta() {
+    const data = state.moduleData || buildDerivedData(state.progress, state.leaderboard, state.user);
+    const shop = state.shopState || createDefaultShopState(state.progress.coins);
+    const friendState = state.friendState || createDefaultFriendState();
+    const backpackEntries = getBackpackEntries();
+
+    document.getElementById('hub-shop-meta').textContent = !Auth.isLoggedIn()
+      ? '登录后可直接购买，记录会入库。'
+      : shop.summary.ownedCount > 0
+        ? `已购 ${shop.summary.ownedCount} 件，累计花费 ${formatNumber(shop.summary.spentTotal)}。`
+        : shop.coins >= Math.min(...(shop.catalog || FALLBACK_SHOP_CATALOG).map(item => item.price))
+          ? '金币够用，可以先补一轮货。'
+          : '金币先攒一攒，再来补货。';
+    document.getElementById('hub-friends-meta').textContent = !Auth.isLoggedIn()
+      ? '登录后可加好友，关系会独立保存。'
+      : friendState.summary.incomingCount > 0
+        ? `有 ${friendState.summary.incomingCount} 条好友请求待处理。`
+        : friendState.summary.friendCount > 0
+          ? `已经有 ${friendState.summary.friendCount} 位摊友在列。`
+          : (data.meRank ? `你当前第 ${data.meRank.rank} 名，可以开始加好友。` : '先从热榜挑几个摊友。');
+    document.getElementById('hub-backpack-meta').textContent = shop.summary.ownedKinds > 0
+      ? `商城物品 ${shop.summary.ownedKinds} 种，背包已同步。`
+      : `当前库存 ${backpackEntries.length} 格。`;
+    document.getElementById('hub-activity-meta').textContent = `倒计时 ${formatCountdown(data.countdown)}`;
+  }
+
+  function renderModuleData() {
+    state.moduleData = buildDerivedData(state.progress, state.leaderboard, state.user);
+    renderNav();
+    renderStatus();
+    renderShopDetail();
+    renderFriendsDetail();
+    renderBackpackDetail();
+    renderActivityDetail();
+    renderModuleMeta();
+  }
+
+  function createModuleModalContent(moduleKey) {
+    const data = state.moduleData || buildDerivedData(state.progress, state.leaderboard, state.user);
+    const wrap = document.createElement('div');
+    wrap.className = 'home-detail';
+
+    if (moduleKey === 'shop') {
+      const shop = state.shopState || createDefaultShopState(state.progress.coins);
+      wrap.innerHTML = `
+        <div class="home-modal-grid">
+          <div class="home-detail-panel">
+            <div class="home-detail-label">当前金币</div>
+            <div class="home-detail-value">${escapeHTML(formatNumber(shop.coins))}</div>
+          </div>
+          <div class="home-detail-panel">
+            <div class="home-detail-label">已购种类</div>
+            <div class="home-detail-value">${escapeHTML(shop.summary.ownedKinds)}</div>
+          </div>
+        </div>
+        <div class="home-modal-list">
+          ${shop.catalog.map(item => `
+            <div class="home-modal-list-item">
+              <div>
+                <div class="home-detail-name">${escapeHTML(item.name)}</div>
+                <div class="home-detail-desc">${escapeHTML(item.description || '顺手补货，开局更稳。')}</div>
+              </div>
+              <div class="home-detail-side">
+                <span class="home-detail-tag home-detail-tag--gold">${escapeHTML(formatNumber(item.price))} 金币</span>
+                <span class="home-detail-tag ${getTagClass(item.tag)}">已购 ${escapeHTML(item.owned)} 件</span>
+              </div>
+            </div>
+          `).join('')}
+          ${shop.history.length ? `
+            <div class="home-row-label">最近购买</div>
+            ${shop.history.slice(0, 3).map(item => `
+              <div class="home-modal-list-item">
+                <div>
+                  <div class="home-detail-name">${escapeHTML(item.name)}</div>
+                  <div class="home-detail-desc">${escapeHTML(`${item.quantity} 件 · ${UI.formatTime(item.createdAt) || '刚刚入库'}`)}</div>
+                </div>
+                <div class="home-detail-side">
+                  <span class="home-detail-tag ${getTagClass(item.tag)}">${escapeHTML(formatNumber(item.totalPrice))} 金币</span>
+                </div>
+              </div>
+            `).join('')}
+          ` : ''}
+        </div>
+      `;
+    } else if (moduleKey === 'friends') {
+      const incoming = state.friendState.incomingRequests || [];
+      const friends = state.friendState.friends || [];
+      const outgoing = state.friendState.outgoingRequests || [];
+      const suggestions = getFriendSuggestions(2);
+      const snapshots = []
+        .concat(incoming.map(item => ({ label: '待处理', cls: 'home-detail-tag--berry', row: item })))
+        .concat(friends.map(item => ({ label: '已好友', cls: 'home-detail-tag--mint', row: item })))
+        .concat(outgoing.map(item => ({ label: '已发出', cls: '', row: item })))
+        .concat(suggestions.map(item => ({ label: '可邀请', cls: 'home-detail-tag--gold', row: item })))
+        .slice(0, 6);
+
+      wrap.innerHTML = `
+        <div class="home-modal-grid">
+          <div class="home-detail-panel">
+            <div class="home-detail-label">好友数量</div>
+            <div class="home-detail-value">${escapeHTML(state.friendState.summary.friendCount)}</div>
+          </div>
+          <div class="home-detail-panel">
+            <div class="home-detail-label">待处理请求</div>
+            <div class="home-detail-value">${escapeHTML(state.friendState.summary.incomingCount)}</div>
+          </div>
+        </div>
+        <div class="home-modal-list">
+          ${snapshots.length ? snapshots.map(item => `
+            <div class="home-modal-list-item">
+              <div>
+                <div class="home-detail-name">${escapeHTML(item.row.nickname)}</div>
+                <div class="home-detail-desc">第 ${escapeHTML(item.row.maxLevel)} 关 · ${escapeHTML(formatNumber(item.row.totalScore))} 分</div>
+              </div>
+              <div class="home-detail-side">
+                <span class="home-detail-tag ${item.cls}">${escapeHTML(item.label)}</span>
+              </div>
+            </div>
+          `).join('') : `<div class="home-empty">先从热榜挑几个摊友，关系会直接落库。</div>`}
+        </div>
+      `;
+    } else if (moduleKey === 'backpack') {
+      const backpackEntries = getBackpackEntries();
+      wrap.innerHTML = `
+        <div class="home-modal-grid">
+          <div class="home-detail-panel">
+            <div class="home-detail-label">库存总量</div>
+            <div class="home-detail-value">${escapeHTML(backpackEntries.length)}</div>
+          </div>
+          <div class="home-detail-panel">
+            <div class="home-detail-label">商城物品</div>
+            <div class="home-detail-value">${escapeHTML(state.shopState.summary.ownedKinds)}</div>
+          </div>
+        </div>
+        <div class="home-modal-list">
+          ${backpackEntries.slice(0, 8).map(item => `
+            <div class="home-modal-list-item">
+              <div>
+                <div class="home-detail-name">${escapeHTML(item.name)}</div>
+                <div class="home-detail-desc">${escapeHTML(item.note)}</div>
+              </div>
+              <div class="home-detail-side">
+                <span class="home-detail-tag home-detail-tag--coral">${escapeHTML(item.value)} 件</span>
+                <span class="home-detail-tag ${escapeHTML(item.sourceClass)}">${escapeHTML(item.sourceLabel)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else if (moduleKey === 'activity') {
+      wrap.innerHTML = `
+        <div class="home-modal-grid">
+          <div class="home-detail-panel">
+            <div class="home-detail-label">剩余时间</div>
+            <div class="home-detail-value" data-modal-countdown-value>${escapeHTML(formatCountdown(data.countdown))}</div>
+          </div>
+          <div class="home-detail-panel">
+            <div class="home-detail-label">刷新频率</div>
+            <div class="home-detail-value">每小时</div>
+          </div>
+        </div>
+        <div class="home-modal-list">
+          ${data.activityTasks.map(task => `
+            <div class="home-modal-list-item">
+              <div>
+                <div class="home-detail-name">${escapeHTML(task.name)}</div>
+                <div class="home-detail-desc">${escapeHTML(task.desc)}</div>
+              </div>
+              <div class="home-detail-side">
+                <span class="home-detail-tag ${task.done ? 'home-detail-tag--mint' : 'home-detail-tag--berry'}">
+                  ${escapeHTML(task.done ? '已完成' : task.value)}
+                </span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    return wrap;
+  }
+
+  function scrollToSection(sectionId) {
+    const node = document.getElementById(sectionId);
+    if (!node) return;
+    node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function openModuleModal(moduleKey) {
+    const titles = {
+      shop: '商城',
+      friends: '好友',
+      backpack: '背包',
+      activity: '活动',
+    };
+
+    const sectionMap = {
+      shop: 'detail-shop',
+      friends: 'detail-friends',
+      backpack: 'detail-backpack',
+      activity: 'detail-activity',
+    };
+
+    const body = createModuleModalContent(moduleKey);
+    const modal = UI.createModal({
+      title: titles[moduleKey] || '模块',
+      body,
+      buttons: [
+        {
+          text: '关闭',
+          type: 'ghost',
+        },
+        {
+          text: '去查看',
+          type: 'gold',
+          onClick: () => scrollToSection(sectionMap[moduleKey]),
+        },
+      ],
+    });
+
+    const box = modal.overlay.querySelector('.modal-box');
+    const bodyEl = modal.overlay.querySelector('.modal-body');
+    const footerEl = modal.overlay.querySelector('.modal-footer');
+    if (box) box.classList.add('modal-box--wide');
+    if (bodyEl) bodyEl.classList.add('modal-body--module');
+    if (footerEl) footerEl.classList.add('modal-footer--stack');
+  }
+
+  function openBBQ() {
+    location.href = '/bbq/';
+  }
+
+  function bindEvents() {
+    const card = document.getElementById('card-bbq');
+    card.addEventListener('click', openBBQ);
+    card.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openBBQ();
+      }
+    });
+
+    document.getElementById('hub-grid').addEventListener('click', event => {
+      const cardEl = event.target.closest('[data-module]');
+      if (!cardEl) return;
+      openModuleModal(cardEl.getAttribute('data-module'));
+    });
+
+    document.querySelectorAll('[data-module-open]').forEach(button => {
+      button.addEventListener('click', () => openModuleModal(button.getAttribute('data-module-open')));
+    });
+
+    document.querySelectorAll('[data-nav-target]').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        scrollToSection(`detail-${link.getAttribute('data-nav-target')}`);
+      });
+    });
+
+    document.getElementById('shop-list').addEventListener('click', event => {
+      const button = event.target.closest('[data-shop-buy]');
+      if (!button) return;
+      event.preventDefault();
+      handleShopPurchase(button.getAttribute('data-shop-buy'));
+    });
+
+    document.getElementById('friends-list').addEventListener('click', event => {
+      const button = event.target.closest('[data-friend-action]');
+      if (!button) return;
+      event.preventDefault();
+      handleFriendAction({
+        action: button.getAttribute('data-friend-action'),
+        requestId: button.getAttribute('data-request-id') || '',
+        userId: button.getAttribute('data-user-id') || '',
+        friendName: button.getAttribute('data-friend-name') || '这位摊友',
+      });
     });
   }
 
-  // ===== 退出登录 =====
   async function handleLogout() {
+    const ok = await UI.confirm({
+      title: '退出登录',
+      message: '确定先离开摊位吗？',
+      confirmText: '退出',
+      cancelText: '取消',
+      danger: true,
+    });
+    if (!ok) return;
+
     try {
       await API.auth.logout();
     } catch (_) {}
     Auth.clearAuth();
-    location.reload();
+    UI.toast('已退出登录', 'success');
+    setTimeout(() => location.reload(), 250);
   }
 
-  // ===== 游戏入口点击 =====
-  function bindGameCards() {
-    document.getElementById('card-bbq').addEventListener('click', () => {
-      location.href = '/bbq/';
-    });
+  async function refreshFriendState() {
+    if (!Auth.isLoggedIn()) {
+      state.friendState = createDefaultFriendState();
+      return state.friendState;
+    }
+
+    const data = await API.friends.getState();
+    state.friendState = normalizeFriendState(data);
+    return state.friendState;
   }
 
-  // ===== 初始化 =====
-  function init() {
-    renderNav();
-    renderUserStatus();
-    bindGameCards();
+  async function handleShopPurchase(itemKey) {
+    if (!ensureLoggedIn('请先登录后再购买')) return;
+    const item = (state.shopState.catalog || []).find(entry => entry.itemKey === itemKey);
+    if (!item) {
+      UI.toast('商品不存在', 'error');
+      return;
+    }
+
+    const busyKey = String(itemKey || '');
+    state.pendingShopActions[busyKey] = true;
+    renderModuleData();
+
+    try {
+      const result = await API.shop.purchase(itemKey, 1);
+      if (result && result.state) {
+        state.shopState = normalizeShopState(result.state);
+        syncCoins(state.shopState.coins);
+      } else {
+        state.shopState = normalizeShopState(await API.shop.getState());
+        syncCoins(state.shopState.coins);
+      }
+      UI.toast(`${item.name} 已入库`, 'success');
+    } catch (err) {
+      UI.toast(err && err.message ? err.message : '购买失败', 'error');
+    } finally {
+      delete state.pendingShopActions[busyKey];
+      renderModuleData();
+    }
   }
 
-  init();
+  async function handleFriendAction({ action, requestId, userId, friendName }) {
+    if (!ensureLoggedIn('请先登录后再管理好友')) return;
+
+    const targetKey = String(requestId || userId || '');
+    if (!targetKey) return;
+
+    if (action === 'remove') {
+      const ok = await UI.confirm({
+        title: '删除好友',
+        message: `确定要和 ${friendName || '这位摊友'} 解除好友关系吗？`,
+        confirmText: '删除',
+        cancelText: '取消',
+        danger: true,
+      });
+      if (!ok) return;
+    }
+
+    state.pendingFriendActions[targetKey] = true;
+    renderModuleData();
+
+    try {
+      if (action === 'request') {
+        const result = await API.friends.sendRequest(userId);
+        UI.toast(result && result.autoAccepted ? '互相加上了，已经成为好友' : '好友请求已发出', 'success');
+      } else if (action === 'accept') {
+        await API.friends.acceptRequest(requestId);
+        UI.toast('已成为好友', 'success');
+      } else if (action === 'reject') {
+        await API.friends.rejectRequest(requestId);
+        UI.toast('已拒绝好友请求', 'success');
+      } else if (action === 'cancel') {
+        await API.friends.cancelRequest(requestId);
+        UI.toast('已取消好友请求', 'success');
+      } else if (action === 'remove') {
+        await API.friends.remove(userId);
+        UI.toast('已移除好友', 'success');
+      }
+
+      await refreshFriendState();
+    } catch (err) {
+      UI.toast(err && err.message ? err.message : '好友操作失败', 'error');
+    } finally {
+      delete state.pendingFriendActions[targetKey];
+      renderModuleData();
+    }
+  }
+
+  async function loadRemoteData() {
+    const requests = [];
+    let meData = null;
+    let leaderboardData = [];
+    let shopData = null;
+    let friendData = null;
+
+    if (Auth.isLoggedIn()) {
+      requests.push(
+        API.users.me()
+          .then(data => ({ type: 'me', data }))
+          .catch(() => ({ type: 'me', data: null }))
+      );
+      requests.push(
+        API.shop.getState()
+          .then(data => ({ type: 'shop', data }))
+          .catch(() => ({ type: 'shop', data: null }))
+      );
+      requests.push(
+        API.friends.getState()
+          .then(data => ({ type: 'friends', data }))
+          .catch(() => ({ type: 'friends', data: null }))
+      );
+    }
+
+    requests.push(
+      API.bbq.getLeaderboard(8)
+        .then(data => ({ type: 'leaderboard', data }))
+        .catch(() => ({ type: 'leaderboard', data: [] }))
+    );
+
+    const results = await Promise.all(requests);
+    for (const item of results) {
+      if (item.type === 'leaderboard') {
+        leaderboardData = Array.isArray(item.data) ? item.data : [];
+      }
+
+      if (item.type === 'me' && item.data) {
+        meData = item.data;
+      }
+
+      if (item.type === 'shop' && item.data) {
+        shopData = item.data;
+      }
+
+      if (item.type === 'friends' && item.data) {
+        friendData = item.data;
+      }
+    }
+
+    state.leaderboard = leaderboardData;
+
+    if (meData) {
+      const patch = {};
+      if (meData.nickname !== undefined) patch.nickname = meData.nickname;
+      if (meData.avatar !== undefined) patch.avatar = meData.avatar;
+      if (meData.bbq !== undefined) patch.bbq = meData.bbq;
+      if (Object.keys(patch).length) {
+        Auth.updateUser(patch);
+      }
+      state.user = Object.assign({}, getCurrentUser() || {}, meData);
+      state.progress = normalizeProgress(state.user);
+    } else {
+      state.user = getCurrentUser();
+      state.progress = normalizeProgress(state.user || {});
+    }
+
+    state.shopState = shopData
+      ? normalizeShopState(shopData)
+      : createDefaultShopState(state.progress.coins);
+    syncCoins(state.shopState.coins);
+
+    state.friendState = friendData
+      ? normalizeFriendState(friendData)
+      : createDefaultFriendState();
+
+    renderModuleData();
+  }
+
+  function startActivityTicker() {
+    if (state.timerId) {
+      clearInterval(state.timerId);
+      state.timerId = null;
+    }
+
+    state.timerId = setInterval(() => {
+      if (!state.moduleData) return;
+      state.moduleData.countdown = getNextEventEnd() - Date.now();
+      document.getElementById('hub-activity-meta').textContent = `倒计时 ${formatCountdown(state.moduleData.countdown)}`;
+      const countdownEl = document.querySelector('[data-countdown-value]');
+      if (countdownEl) {
+        countdownEl.textContent = formatCountdown(state.moduleData.countdown);
+      }
+      const modalCountdownEl = document.querySelector('[data-modal-countdown-value]');
+      if (modalCountdownEl) {
+        modalCountdownEl.textContent = formatCountdown(state.moduleData.countdown);
+      }
+    }, 1000);
+  }
+
+  function initialRender() {
+    state.user = getCurrentUser();
+    state.progress = normalizeProgress(state.user || {});
+    state.shopState = createDefaultShopState(state.progress.coins);
+    state.friendState = createDefaultFriendState();
+    renderModuleData();
+    startActivityTicker();
+  }
+
+  bindEvents();
+  initialRender();
+  loadRemoteData().catch(() => {
+    state.moduleData = buildDerivedData(state.progress, state.leaderboard, state.user);
+    renderModuleData();
+  });
 })();
 </script>
 </body>

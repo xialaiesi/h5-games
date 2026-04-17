@@ -14,31 +14,36 @@
 // ==================== 食材表 ====================
 
 const INGREDIENTS = [
-  { id: 'pepper',   emoji: '🌶️', name: '烤辣椒', unlock: 1  },
-  { id: 'corn',     emoji: '🌽', name: '烤玉米', unlock: 1  },
-  { id: 'meat',     emoji: '🍖', name: '烤肉串', unlock: 1  },
-  { id: 'shrimp',   emoji: '🦐', name: '烤大虾', unlock: 3  },
-  { id: 'chicken',  emoji: '🍗', name: '烤鸡腿', unlock: 5  },
-  { id: 'mushroom', emoji: '🍄', name: '烤香菇', unlock: 8  },
-  { id: 'squid',    emoji: '🦑', name: '烤鱿鱼', unlock: 12 },
-  { id: 'yam',      emoji: '🍠', name: '烤红薯', unlock: 16 },
-  { id: 'broccoli', emoji: '🥦', name: '西兰花', unlock: 20 },
-  { id: 'onion',    emoji: '🧅', name: '烤洋葱', unlock: 25 },
-  { id: 'eggplant', emoji: '🍆', name: '烤茄子', unlock: 30 },
-  { id: 'fish',     emoji: '🐟', name: '烤鱼',   unlock: 35 },
+  { id: 'pepper',   emoji: '🌶️', name: '烤辣椒', unlock: 1,  asset: 'assets/ingredients/pepper.svg'   },
+  { id: 'corn',     emoji: '🌽', name: '烤玉米', unlock: 1,  asset: 'assets/ingredients/corn.svg'     },
+  { id: 'meat',     emoji: '🍖', name: '烤肉串', unlock: 1,  asset: 'assets/ingredients/meat.svg'     },
+  { id: 'shrimp',   emoji: '🦐', name: '烤大虾', unlock: 3,  asset: 'assets/ingredients/shrimp.svg'   },
+  { id: 'chicken',  emoji: '🍗', name: '烤鸡腿', unlock: 5,  asset: 'assets/ingredients/chicken.svg'  },
+  { id: 'mushroom', emoji: '🍄', name: '烤香菇', unlock: 8,  asset: 'assets/ingredients/mushroom.svg' },
+  { id: 'squid',    emoji: '🦑', name: '烤鱿鱼', unlock: 12, asset: 'assets/ingredients/squid.svg'    },
+  { id: 'yam',      emoji: '🍠', name: '烤红薯', unlock: 16, asset: 'assets/ingredients/yam.svg'      },
+  { id: 'broccoli', emoji: '🥦', name: '西兰花', unlock: 20, asset: 'assets/ingredients/broccoli.svg' },
+  { id: 'onion',    emoji: '🧅', name: '烤洋葱', unlock: 25, asset: 'assets/ingredients/onion.svg'    },
+  { id: 'eggplant', emoji: '🍆', name: '烤茄子', unlock: 30, asset: 'assets/ingredients/eggplant.svg' },
+  { id: 'fish',     emoji: '🐟', name: '烤鱼',   unlock: 35, asset: 'assets/ingredients/fish.svg'     },
 ];
 
-const GRILL_COUNT  = 12;
+const BOARD_CELL_COUNT = 12;
+const BOARD_COLS = 3;
+const GRILL_COUNT  = BOARD_CELL_COUNT;
 const PAN_CAPACITY = 3;
 const TOOL_INIT    = { undo: 3, shuffle: 1, remove: 1, addtime: 1 };
-const COMBO_TEXTS  = ['', '', 'Nice! 🔥', 'Great! 🔥🔥', 'Awesome! ⚡', 'COMBO! 🌟', 'MASTER! 👑'];
-const ORDER_UNLOCK_LEVEL = 11;
+const COMBO_TEXTS  = ['', '', 'Nice!', 'Great!', 'Awesome!', 'Combo!', 'Master!'];
+const ORDER_UNLOCK_LEVEL = 12;
+const RAIL_UNLOCK_LEVEL = 6;
+const PREP_RACK_UNLOCK_LEVEL = 12;
 const TOOL_LABELS = {
   undo: '撤回',
   shuffle: '洗牌',
   remove: '清盘',
   addtime: '加时',
 };
+const INGREDIENT_MAP = Object.fromEntries(INGREDIENTS.map(ingredient => [ingredient.id, ingredient]));
 
 // ==================== 工具函数 ====================
 
@@ -56,24 +61,222 @@ function shuffle(arr) {
 
 const ceil3 = n => Math.ceil(n / 3) * 3;
 
+function cloneItem(item) {
+  return item ? { ...item } : null;
+}
+
+function pickRailEmptyCells(levelNum, count) {
+  const railPool = [10, 7, 4, 1, 9, 6];
+  return Array.from({ length: count }, (_, idx) => railPool[(levelNum + idx) % railPool.length]);
+}
+
+function getGrill(grillId) {
+  return G.data && G.data.grills ? G.data.grills[grillId] || null : null;
+}
+
+function isRailLevel() {
+  return !!(G.data && G.data.cfg && G.data.cfg.railEnabled);
+}
+
+function isPrepRackEnabled() {
+  return !!(G.data && G.data.cfg && G.data.cfg.prepRackSize > 0);
+}
+
+function getCellRow(cellIndex) {
+  return Math.floor(cellIndex / BOARD_COLS);
+}
+
+function getCellCol(cellIndex) {
+  return cellIndex % BOARD_COLS;
+}
+
+function areCellsAdjacent(a, b) {
+  return Math.abs(getCellRow(a) - getCellRow(b)) + Math.abs(getCellCol(a) - getCellCol(b)) === 1;
+}
+
+function canTransferBetweenGrills(fromGrillId, toGrillId) {
+  if (!isRailLevel()) return true;
+  const fromGrill = getGrill(fromGrillId);
+  const toGrill = getGrill(toGrillId);
+  return !!(fromGrill && toGrill) && areCellsAdjacent(fromGrill.cellIndex, toGrill.cellIndex);
+}
+
+function canSlideGrillToCell(grillId, cellIndex) {
+  const grill = getGrill(grillId);
+  return !!(grill &&
+    isRailLevel() &&
+    grill.movable &&
+    G.data.board[cellIndex] === null &&
+    areCellsAdjacent(grill.cellIndex, cellIndex));
+}
+
+function rackHasEmptySlot() {
+  return Array.isArray(G.prepRack) && G.prepRack.some(slot => slot === null);
+}
+
+function getIngredient(typeId) {
+  return INGREDIENT_MAP[typeId] || null;
+}
+
+function collectPanItems() {
+  const items = [];
+  G.data.grills.forEach(grill => {
+    grill.pan.forEach(item => {
+      if (item) items.push(item);
+    });
+  });
+  return items;
+}
+
+function countVisiblePanItemsByType() {
+  const counts = {};
+  collectPanItems().forEach(item => {
+    counts[item.typeId] = (counts[item.typeId] || 0) + 1;
+  });
+  return counts;
+}
+
+function hasVisibleOddRemainder() {
+  return Object.values(countVisiblePanItemsByType()).some(count => count % PAN_CAPACITY !== 0);
+}
+
+function buildTypeBuckets(items) {
+  const buckets = new Map();
+  shuffle(items).forEach(item => {
+    if (!buckets.has(item.typeId)) buckets.set(item.typeId, []);
+    buckets.get(item.typeId).push(item);
+  });
+  return buckets;
+}
+
+function flattenBuckets(buckets) {
+  const flat = [];
+  buckets.forEach(bucket => {
+    flat.push(...bucket);
+  });
+  return flat;
+}
+
+function takeAnyItems(buckets, count) {
+  const pool = shuffle(flattenBuckets(buckets));
+  const picked = pool.slice(0, count);
+  const wanted = new Set(picked.map(item => item.uid));
+  buckets.forEach((bucket, typeId) => {
+    buckets.set(typeId, bucket.filter(item => !wanted.has(item.uid)));
+  });
+  return picked;
+}
+
+function buildSeededPanPairs(allItems, chosen, grillCount) {
+  const buckets = buildTypeBuckets(allItems);
+  const starterTypes = shuffle(Array.from({ length: grillCount }, (_, idx) => chosen[idx % chosen.length].id));
+  const pairs = [];
+
+  starterTypes.forEach(typeId => {
+    const bucket = buckets.get(typeId) || [];
+    if (bucket.length >= 2) {
+      pairs.push([bucket.pop(), bucket.pop()]);
+    } else {
+      const fallback = takeAnyItems(buckets, 2);
+      pairs.push([fallback[0] || null, fallback[1] || null].filter(Boolean));
+    }
+  });
+
+  const remaining = shuffle(flattenBuckets(buckets));
+  return { pairs, remaining };
+}
+
+function buildResolvablePanLayouts(items, grillCount) {
+  const buckets = buildTypeBuckets(items);
+  const layouts = Array.from({ length: grillCount }, () => []);
+  let tripleCursor = 0;
+
+  let progressed = true;
+  while (progressed) {
+    progressed = false;
+    Array.from(buckets.keys()).forEach(typeId => {
+      const bucket = buckets.get(typeId) || [];
+      while (bucket.length >= PAN_CAPACITY && tripleCursor < grillCount) {
+        layouts[tripleCursor].push(bucket.pop(), bucket.pop(), bucket.pop());
+        tripleCursor++;
+        progressed = true;
+      }
+    });
+  }
+
+  const leftovers = shuffle(flattenBuckets(buckets));
+  leftovers.forEach(item => {
+    const targetIndex = layouts.findIndex(slots => slots.length < PAN_CAPACITY);
+    if (targetIndex !== -1) layouts[targetIndex].push(item);
+  });
+
+  return layouts.map(slots => {
+    while (slots.length < PAN_CAPACITY) slots.push(null);
+    return slots;
+  });
+}
+
+function showSystemTip(text) {
+  const tip = document.createElement('div');
+  tip.className = 'order-done-tip';
+  tip.textContent = text;
+  tip.style.left = '50%';
+  tip.style.top = '40%';
+  tip.style.transform = 'translateX(-50%)';
+  document.body.appendChild(tip);
+  setTimeout(() => tip.remove(), 1100);
+}
+
+function ingredientHTML(item, variant = 'slot') {
+  const ingredient = getIngredient(item.typeId) || item;
+  const asset = item.asset || ingredient.asset || '';
+  const name = item.name || ingredient.name || '';
+  if (!asset) {
+    return `<span class="ingredient-fallback ingredient-fallback-${variant}">${item.emoji || ingredient.emoji || '?'}</span>`;
+  }
+  return `<span class="ingredient-icon ingredient-icon-${variant}" data-type-id="${item.typeId}">
+    <img src="${asset}" alt="${name}" draggable="false">
+  </span>`;
+}
+
+function createIngredientNode(item, variant = 'slot') {
+  const wrapper = document.createElement('span');
+  wrapper.innerHTML = ingredientHTML(item, variant).trim();
+  return wrapper.firstElementChild;
+}
+
 // ==================== 关卡配置 ====================
 
 function getLevelCfg(lv) {
-  if (lv <= 5)  return { numTypes: 3,  itemsPerDish: 1,  time: 360, spicyRatio: 0,    orderInterval: 0,  orderTime: 0,  maxOrders: 0 };
-  if (lv <= 10) return { numTypes: 4,  itemsPerDish: 2,  time: 320, spicyRatio: 0.15, orderInterval: 0,  orderTime: 0,  maxOrders: 0 };
-  if (lv <= 15) return { numTypes: 5,  itemsPerDish: 3,  time: 280, spicyRatio: 0.25, orderInterval: 60, orderTime: 50, maxOrders: 1 };
-  if (lv <= 20) return { numTypes: 6,  itemsPerDish: 5,  time: 220, spicyRatio: 0.4,  orderInterval: 40, orderTime: 35, maxOrders: 1 };
-  if (lv <= 25) return { numTypes: 7,  itemsPerDish: 6,  time: 210, spicyRatio: 0.45, orderInterval: 35, orderTime: 32, maxOrders: 2 };
-  if (lv <= 30) return { numTypes: 8,  itemsPerDish: 6,  time: 200, spicyRatio: 0.45, orderInterval: 30, orderTime: 28, maxOrders: 2 };
-  if (lv <= 40) return { numTypes: 9,  itemsPerDish: 7,  time: 190, spicyRatio: 0.5,  orderInterval: 25, orderTime: 25, maxOrders: 2 };
+  let base;
+  if (lv <= 5) base = { numTypes: 3, itemsPerDish: 1, time: 360, spicyRatio: 0, orderInterval: 0, orderTime: 0, maxOrders: 0 };
+  else if (lv <= 10) base = { numTypes: 4, itemsPerDish: 2, time: 320, spicyRatio: 0.15, orderInterval: 0, orderTime: 0, maxOrders: 0 };
+  else if (lv <= 15) base = { numTypes: 5, itemsPerDish: 3, time: 280, spicyRatio: 0.25, orderInterval: 60, orderTime: 50, maxOrders: 1 };
+  else if (lv <= 20) base = { numTypes: 6, itemsPerDish: 5, time: 220, spicyRatio: 0.4, orderInterval: 40, orderTime: 35, maxOrders: 1 };
+  else if (lv <= 25) base = { numTypes: 7, itemsPerDish: 6, time: 210, spicyRatio: 0.45, orderInterval: 35, orderTime: 32, maxOrders: 2 };
+  else if (lv <= 30) base = { numTypes: 8, itemsPerDish: 6, time: 200, spicyRatio: 0.45, orderInterval: 30, orderTime: 28, maxOrders: 2 };
+  else if (lv <= 40) base = { numTypes: 9, itemsPerDish: 7, time: 190, spicyRatio: 0.5, orderInterval: 25, orderTime: 25, maxOrders: 2 };
+  else {
+    base = {
+      numTypes: Math.min(12, 10 + Math.floor((lv - 40) / 3)),
+      itemsPerDish: 8,
+      time: Math.max(150, 190 - (lv - 40) * 2),
+      spicyRatio: 0.5,
+      orderInterval: 20,
+      orderTime: 22,
+      maxOrders: 2,
+    };
+  }
+
+  const railEnabled = lv >= RAIL_UNLOCK_LEVEL;
+  const prepRackSize = lv >= PREP_RACK_UNLOCK_LEVEL ? (lv >= 22 ? 4 : 3) : 0;
+
   return {
-    numTypes: Math.min(12, 10 + Math.floor((lv - 40) / 3)),
-    itemsPerDish: 8,
-    time: Math.max(150, 190 - (lv - 40) * 2),
-    spicyRatio: 0.5,
-    orderInterval: 20,
-    orderTime: 22,
-    maxOrders: 2,
+    ...base,
+    time: base.time + (railEnabled ? 20 : 0) + (prepRackSize > 0 ? 10 : 0),
+    railEnabled,
+    railEmptyCells: railEnabled ? 1 : 0,
+    prepRackSize,
   };
 }
 
@@ -94,6 +297,7 @@ function getLevelCfg(lv) {
  */
 function generateLevel(levelNum) {
   const cfg = getLevelCfg(levelNum);
+  const activeGrillCount = BOARD_CELL_COUNT - cfg.railEmptyCells;
 
   const pool = INGREDIENTS.filter(ing => ing.unlock <= levelNum);
   const numTypes = Math.min(cfg.numTypes, pool.length);
@@ -104,8 +308,8 @@ function generateLevel(levelNum) {
   const itemsPerPan = 2; // 烤盘初始放2个食材，留1个空位
 
   // 总食材 = 烤盘初始(每盘2个) + 碟子(每盘 dishPlates碟 × 3个/碟)
-  const initialPanCount = GRILL_COUNT * itemsPerPan;
-  const totalDishItems  = GRILL_COUNT * dishPlates * PAN_CAPACITY;
+  const initialPanCount = activeGrillCount * itemsPerPan;
+  const totalDishItems  = activeGrillCount * dishPlates * PAN_CAPACITY;
   const rawTotal = initialPanCount + totalDishItems;
 
   // 每种类型数量取3的倍数
@@ -116,43 +320,43 @@ function generateLevel(levelNum) {
   const allItems = [];
   chosen.forEach(ing => {
     for (let i = 0; i < perType; i++) {
-      allItems.push({ uid: nextUid(), typeId: ing.id, emoji: ing.emoji, name: ing.name });
+      allItems.push({ uid: nextUid(), typeId: ing.id, emoji: ing.emoji, name: ing.name, asset: ing.asset });
     }
   });
 
-  const bag = shuffle(allItems);
-
-  // 前 initialPanCount 个放到烤盘，剩余分组为碟子（每碟3个）
-  const panItems  = bag.slice(0, initialPanCount);
-  const dishItems = bag.slice(initialPanCount);
+  const { pairs: seededPairs, remaining: dishItems } = buildSeededPanPairs(allItems, chosen, activeGrillCount);
 
   // 把 dishItems 分成碟子（每碟3个食材），均匀分配到12个烤盘
   // dishes[i] = [[item,item,item], [item,item,item], ...] 碟子栈
-  const dishes = Array.from({ length: GRILL_COUNT }, () => []);
+  const dishes = Array.from({ length: activeGrillCount }, () => []);
   let cursor = 0;
   // 先每个烤盘分配 dishPlates 碟
-  for (let gi = 0; gi < GRILL_COUNT; gi++) {
+  for (let gi = 0; gi < activeGrillCount; gi++) {
     for (let d = 0; d < dishPlates && cursor + 3 <= dishItems.length; d++) {
       dishes[gi].push([dishItems[cursor], dishItems[cursor+1], dishItems[cursor+2]]);
       cursor += 3;
     }
   }
   // 剩余食材继续按3个一组分配
+  let extraDishIndex = 0;
   while (cursor + 3 <= dishItems.length) {
-    dishes[cursor % GRILL_COUNT].push([dishItems[cursor], dishItems[cursor+1], dishItems[cursor+2]]);
+    dishes[extraDishIndex % activeGrillCount].push([dishItems[cursor], dishItems[cursor+1], dishItems[cursor+2]]);
     cursor += 3;
+    extraDishIndex++;
   }
 
   // 辣盘分配
-  const spicyCount   = Math.round(GRILL_COUNT * cfg.spicyRatio);
+  const spicyCount   = Math.round(activeGrillCount * cfg.spicyRatio);
   const spicyIndices = new Set(
-    shuffle(Array.from({ length: GRILL_COUNT }, (_, i) => i)).slice(0, spicyCount)
+    shuffle(Array.from({ length: activeGrillCount }, (_, i) => i)).slice(0, spicyCount)
   );
 
+  const emptyCells = cfg.railEmptyCells > 0 ? pickRailEmptyCells(levelNum, cfg.railEmptyCells) : [];
+  const filledCells = Array.from({ length: BOARD_CELL_COUNT }, (_, i) => i).filter(i => !emptyCells.includes(i));
+
   // 构造烤盘：每盘放2个食材 + 1个空位
-  const grills = Array.from({ length: GRILL_COUNT }, (_, i) => {
-    const a = panItems[i * itemsPerPan];
-    const b = panItems[i * itemsPerPan + 1];
+  const grills = Array.from({ length: activeGrillCount }, (_, i) => {
+    const [a, b] = seededPairs[i] || [];
     const emptyPos = Math.floor(Math.random() * 3);
     let pan;
     if (emptyPos === 0)      pan = [null, a, b];
@@ -164,10 +368,17 @@ function generateLevel(levelNum) {
       spicy: spicyIndices.has(i),
       pan,
       dish:  dishes[i], // 碟子栈：[[item,item,item], ...]
+      cellIndex: filledCells[i],
+      movable: cfg.railEnabled,
     };
   });
 
-  return { levelNum, grills, totalItems: actualTotal, cfg };
+  const board = Array.from({ length: BOARD_CELL_COUNT }, () => null);
+  grills.forEach(grill => {
+    board[grill.cellIndex] = grill.id;
+  });
+
+  return { levelNum, grills, board, totalItems: actualTotal, cfg };
 }
 
 // ==================== 存档 ====================
@@ -269,6 +480,8 @@ const G = {
   orders:          [],
   orderIdCounter:  0,
   orderSpawnTimer: null,
+  selectedRailGrillId: null,
+  prepRack: [],
   lastRefilledSlots: [],   // 上次补充的槽位 [{grillId, slotIdx}]
 };
 
@@ -293,17 +506,21 @@ function stopOrderSystem() {
 
 function spawnOrder() {
   const cfg = G.data.cfg;
+  if (maybeEnsureCleanupOrder()) return;
+
   const availableTypes = new Set();
   G.data.grills.forEach(g => {
     // dish 是碟子栈：[[item,item,item], ...]
     g.dish.forEach(plate => plate.forEach(it => availableTypes.add(it.typeId)));
     g.pan.forEach(it => { if (it) availableTypes.add(it.typeId); });
   });
+  G.prepRack.forEach(it => { if (it) availableTypes.add(it.typeId); });
   const typeArr = Array.from(availableTypes);
   if (typeArr.length < 1) return;
 
   // 随机1-3种食材
-  const orderCount = Math.min(typeArr.length, 1 + Math.floor(Math.random() * 3));
+  const maxOrderCount = isPrepRackEnabled() ? 3 : 2;
+  const orderCount = Math.min(typeArr.length, 1 + Math.floor(Math.random() * maxOrderCount));
   const chosenTypes = shuffle(typeArr).slice(0, orderCount);
   const hasSpicy  = G.data.grills.some(g => g.spicy);
   const hasNormal = G.data.grills.some(g => !g.spicy);
@@ -311,13 +528,19 @@ function spawnOrder() {
   if (hasSpicy && hasNormal) orderSpicy = Math.random() < 0.5;
   else if (hasSpicy) orderSpicy = true;
 
-  const typeMap = {};
-  INGREDIENTS.forEach(ing => { typeMap[ing.id] = ing.emoji; });
-
   const order = {
     id:       ++G.orderIdCounter,
     spicy:    orderSpicy,
-    items:    chosenTypes.map(tid => ({ typeId: tid, emoji: typeMap[tid] || '?', done: false })),
+    items:    chosenTypes.map(tid => {
+      const ingredient = getIngredient(tid) || {};
+      return {
+        typeId: tid,
+        emoji: ingredient.emoji || '?',
+        name: ingredient.name || tid,
+        asset: ingredient.asset || '',
+        done: false,
+      };
+    }),
     timerSec: cfg.orderTime,
     handle:   null,
   };
@@ -371,14 +594,14 @@ function renderOrders() {
     card.className = 'order-card' +
       (o.completed ? ' completed-order' : '') +
       (!o.completed && o.timerSec <= 10 ? ' urgent-order' : '');
-    const flavorText = o.spicy ? '🌶️辣味' : '原味';
+    const flavorText = o.spicy ? '辣味' : '原味';
     const timerClass = o.timerSec <= 10 ? 'order-timer low' : 'order-timer';
     card.innerHTML = `
-      <span class="order-icon">🛵</span>
+      <span class="order-icon">单</span>
       <div class="order-info">
         <div class="order-flavor">${flavorText}订单</div>
         <div class="order-items">${o.items.map(it =>
-          `<span class="order-item${it.done ? ' done' : ''}">${it.emoji}</span>`
+          `<span class="order-item${it.done ? ' done' : ''}">${ingredientHTML(it, 'order')}</span>`
         ).join('')}</div>
       </div>
       <div id="order-timer-${o.id}" class="${timerClass}">${o.completed ? '✓' : o.timerSec + 's'}</div>`;
@@ -387,40 +610,135 @@ function renderOrders() {
   syncOrdersLayout();
 }
 
+function maybeEnsureCleanupOrder() {
+  const cfg = G.data.cfg;
+  const remainingItems = Math.max(0, G.data.totalItems - G.cleared);
+  const shouldUseCleanupOrder = remainingItems > 0 && (
+    remainingItems <= 6 ||
+    (remainingItems <= 9 && hasVisibleOddRemainder())
+  );
+
+  if (G.level < ORDER_UNLOCK_LEVEL || !cfg.maxOrders || !shouldUseCleanupOrder) return false;
+
+  const rescueCandidates = G.data.grills
+    .map(grill => ({ grill, items: grill.pan.filter(Boolean) }))
+    .filter(entry => entry.items.length > 0)
+    .sort((a, b) => a.items.length - b.items.length || a.grill.dish.length - b.grill.dish.length);
+
+  if (!rescueCandidates.length) return false;
+
+  const target = rescueCandidates[0];
+  const signature = `${target.grill.spicy ? 'spicy' : 'normal'}:${target.items.map(item => item.typeId).join(',')}`;
+  const currentSignature = G.orders.length === 1
+    ? `${G.orders[0].spicy ? 'spicy' : 'normal'}:${G.orders[0].items.map(item => item.typeId).join(',')}`
+    : '';
+
+  if (currentSignature === signature) return false;
+
+  const order = {
+    id: ++G.orderIdCounter,
+    spicy: target.grill.spicy,
+    items: target.items.map(item => ({
+      typeId: item.typeId,
+      emoji: item.emoji,
+      name: item.name,
+      asset: item.asset,
+      done: false,
+    })),
+    timerSec: Math.max(cfg.orderTime, 45),
+    handle: null,
+  };
+
+  order.handle = setInterval(() => {
+    order.timerSec--;
+    const timerEl = document.getElementById('order-timer-' + order.id);
+    if (timerEl) {
+      timerEl.textContent = order.timerSec + 's';
+      timerEl.classList.toggle('low', order.timerSec <= 10);
+    }
+    if (order.timerSec <= 10) {
+      const cardEl = document.getElementById('order-card-' + order.id);
+      if (cardEl) cardEl.classList.add('urgent-order');
+    }
+    if (order.timerSec <= 0) {
+      clearInterval(order.handle);
+      if (!G.over && !G.won) triggerFail('order_timeout');
+    }
+  }, 1000);
+
+  G.orders.forEach(existing => {
+    if (existing.handle) clearInterval(existing.handle);
+  });
+  G.orders = [order];
+  renderOrders();
+  showSystemTip('收尾订单到啦');
+  setTimeout(() => resolveBoard(), 100);
+  return true;
+}
+
 // ==================== 渲染 ====================
 
 function renderAll() {
-  G.lastRefilledSlots = []; // 渲染后清除，避免动画残留
   renderGrid();
   renderProgress();
   renderTools();
+  renderSystems();
+  G.lastRefilledSlots = []; // 渲染后清除，避免动画残留
 }
 
 function renderGrid() {
   const grid = document.getElementById('grill-grid');
   if (!grid) return;
   grid.innerHTML = '';
-  G.data.grills.forEach(g => {
-    grid.appendChild(buildGrillUnit(g));
+  G.data.board.forEach((grillId, cellIndex) => {
+    if (grillId === null) {
+      grid.appendChild(buildRailCell(cellIndex));
+      return;
+    }
+    const grill = getGrill(grillId);
+    grid.appendChild(grill ? buildGrillUnit(grill, cellIndex) : buildRailCell(cellIndex));
   });
 }
 
-function buildGrillUnit(g) {
+function buildGrillUnit(g, cellIndex = g.cellIndex) {
   const unit = document.createElement('div');
   unit.className = 'grill-unit';
   unit.dataset.grillId = g.id;
+  unit.dataset.cellIndex = cellIndex;
 
   // 烤盘
   const pan = document.createElement('div');
   pan.className = 'grill-pan' + (g.spicy ? ' spicy' : '');
   pan.dataset.grillId = g.id;
+  pan.dataset.cellIndex = cellIndex;
   if (G.removeMode) pan.classList.add('remove-mode');
+  if (G.selectedRailGrillId === g.id) pan.classList.add('rail-selected');
+
+  if (isRailLevel() && g.movable) {
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'rail-handle';
+    handle.textContent = '移';
+    handle.disabled = G.busy || G.over || G.won || G.removeMode;
+    handle.setAttribute('aria-label', `移动第${g.id + 1}个烤盘`);
+    handle.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleRailSelection(g.id);
+    });
+    handle.addEventListener('touchend', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleRailSelection(g.id);
+    }, { passive: false });
+    pan.appendChild(handle);
+  }
 
   // 辣标签
   if (g.spicy) {
     const tag = document.createElement('span');
     tag.className = 'spicy-tag';
-    tag.textContent = '辣🌶️';
+    tag.textContent = '辣味';
     pan.appendChild(tag);
   }
 
@@ -435,9 +753,9 @@ function buildGrillUnit(g) {
     slot.dataset.grillId = g.id;
     slot.dataset.slotIdx = slotIdx;
     if (item) {
-      slot.textContent = item.emoji;
       slot.dataset.typeId = item.typeId;
       slot.dataset.uid = item.uid;
+      slot.appendChild(createIngredientNode(item, 'slot'));
       // 绑定拖拽事件
       bindSlotDrag(slot, g.id, slotIdx);
     }
@@ -487,10 +805,7 @@ function buildDishStack(g) {
     // 显示最顶部碟子的食材
     const topPlate = g.dish[count - 1];
     topPlate.forEach(it => {
-      const span = document.createElement('span');
-      span.className = 'dish-emoji';
-      span.textContent = it.emoji;
-      main.appendChild(span);
+      main.appendChild(createIngredientNode(it, 'dish'));
     });
 
     // 角标显示碟子数量
@@ -499,7 +814,7 @@ function buildDishStack(g) {
     badge.textContent = count;
     main.appendChild(badge);
   } else {
-    main.textContent = '—';
+    main.textContent = '待补';
   }
 
   stack.appendChild(main);
@@ -532,13 +847,118 @@ function renderTools() {
   });
 }
 
+function buildRailCell(cellIndex) {
+  const cell = document.createElement('button');
+  cell.type = 'button';
+  cell.className = 'rail-cell';
+  cell.dataset.cellIndex = cellIndex;
+  cell.disabled = true;
+
+  let text = '空轨';
+  if (G.selectedRailGrillId !== null) {
+    const canMove = canSlideGrillToCell(G.selectedRailGrillId, cellIndex);
+    cell.classList.add(canMove ? 'available' : 'blocked');
+    cell.disabled = !canMove;
+    text = canMove ? '滑入' : '不相邻';
+    if (canMove) {
+      cell.addEventListener('click', () => moveSelectedRailGrillTo(cellIndex));
+      cell.addEventListener('touchend', e => {
+        e.preventDefault();
+        moveSelectedRailGrillTo(cellIndex);
+      }, { passive: false });
+    }
+  }
+
+  cell.textContent = text;
+  return cell;
+}
+
+function toggleRailSelection(grillId) {
+  if (!isRailLevel() || G.busy || G.over || G.won || G.removeMode) return;
+  G.selectedRailGrillId = G.selectedRailGrillId === grillId ? null : grillId;
+  renderAll();
+}
+
+function moveSelectedRailGrillTo(cellIndex) {
+  if (G.selectedRailGrillId === null || !canSlideGrillToCell(G.selectedRailGrillId, cellIndex)) return;
+
+  const grill = getGrill(G.selectedRailGrillId);
+  if (!grill) return;
+
+  saveSnapshot();
+  G.data.board[grill.cellIndex] = null;
+  G.data.board[cellIndex] = grill.id;
+  grill.cellIndex = cellIndex;
+  G.selectedRailGrillId = null;
+  G.combo = 0;
+  renderAll();
+}
+
+function renderSystems() {
+  const row = document.getElementById('systems-row');
+  const railTip = document.getElementById('rail-tip');
+  if (!row || !railTip) return;
+
+  const railEnabled = isRailLevel();
+  const rackEnabled = isPrepRackEnabled();
+  row.classList.toggle('active', railEnabled || rackEnabled);
+  railTip.classList.toggle('active', railEnabled);
+
+  if (railEnabled) {
+    const selectedGrill = G.selectedRailGrillId !== null ? getGrill(G.selectedRailGrillId) : null;
+    railTip.textContent = selectedGrill
+      ? `已选中${selectedGrill.spicy ? '辣味' : '原味'}烤盘，点击相邻空轨位滑动。`
+      : '滑轨已开启，点烤盘右上角“移”，再点空轨位。';
+  } else {
+    railTip.textContent = '';
+  }
+
+  renderPrepRack();
+}
+
+function renderPrepRack() {
+  const wrap = document.getElementById('prep-rack-wrap');
+  const rack = document.getElementById('prep-rack');
+  const countEl = document.getElementById('prep-rack-count');
+  if (!wrap || !rack || !countEl) return;
+
+  if (!isPrepRackEnabled()) {
+    wrap.classList.remove('enabled');
+    rack.innerHTML = '';
+    countEl.textContent = '0/0';
+    return;
+  }
+
+  wrap.classList.add('enabled');
+  rack.innerHTML = '';
+
+  G.prepRack.forEach((item, rackIndex) => {
+    const slot = document.createElement('div');
+    slot.className = 'prep-slot' + (item ? ' filled' : '');
+    slot.dataset.rackIndex = rackIndex;
+    slot.setAttribute('aria-label', `备菜位 ${rackIndex + 1}`);
+    if (item) {
+      slot.dataset.typeId = item.typeId;
+      slot.dataset.uid = item.uid;
+      slot.appendChild(createIngredientNode(item, 'rack'));
+      bindRackDrag(slot, rackIndex);
+    }
+    rack.appendChild(slot);
+  });
+
+  const filled = G.prepRack.filter(Boolean).length;
+  countEl.textContent = `${filled}/${G.prepRack.length}`;
+}
+
 // ==================== 拖拽系统 ====================
 
 let dragState = null;
 /*
   dragState = {
-    grillId:   number,
-    slotIdx:   number,
+    sourceType: 'grill' | 'rack',
+    grillId?:   number,
+    slotIdx?:   number,
+    rackIndex?: number,
     item:      { uid, typeId, emoji, name },
     sourceEl:  HTMLElement,     // 源槽位 DOM
   }
@@ -560,20 +980,45 @@ function bindSlotDrag(slotEl, grillId, slotIdx) {
   }, { passive: false });
 }
 
+function bindRackDrag(slotEl, rackIndex) {
+  slotEl.addEventListener('mousedown', e => {
+    e.preventDefault();
+    startRackDrag(rackIndex, e.clientX, e.clientY, slotEl);
+  });
+  slotEl.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    startRackDrag(rackIndex, t.clientX, t.clientY, slotEl);
+  }, { passive: false });
+}
+
 function startDrag(grillId, slotIdx, x, y, slotEl) {
   if (G.busy || G.over || G.won || G.removeMode) return;
 
-  const grill = G.data.grills[grillId];
+  const grill = getGrill(grillId);
   const item  = grill.pan[slotIdx];
   if (!item) return;
 
-  dragState = { grillId, slotIdx, item, sourceEl: slotEl };
+  dragState = { sourceType: 'grill', grillId, slotIdx, item, sourceEl: slotEl };
 
   // 源槽位半透明
   slotEl.classList.add('dragging-source');
 
   // 显示幽灵
-  ghost.textContent = item.emoji;
+  ghost.innerHTML = ingredientHTML(item, 'ghost');
+  ghost.style.display = 'flex';
+  moveGhost(x, y);
+}
+
+function startRackDrag(rackIndex, x, y, slotEl) {
+  if (G.busy || G.over || G.won || G.removeMode) return;
+
+  const item = G.prepRack[rackIndex];
+  if (!item) return;
+
+  dragState = { sourceType: 'rack', rackIndex, item, sourceEl: slotEl };
+  slotEl.classList.add('dragging-source');
+  ghost.innerHTML = ingredientHTML(item, 'ghost');
   ghost.style.display = 'flex';
   moveGhost(x, y);
 }
@@ -592,15 +1037,23 @@ function endDrag(x, y) {
   // 清除所有高亮
   clearDragHighlights();
 
-  // 命中测试：找到鼠标/触摸位置下的烤盘
+  const targetRackIndex = hitTestPrepRack(x, y);
   const targetGrillId = hitTestGrill(x, y);
 
-  if (targetGrillId !== null && targetGrillId !== dragState.grillId) {
-    tryMoveTo(dragState.grillId, dragState.slotIdx, targetGrillId);
-  } else if (targetGrillId === dragState.grillId) {
-    // 放回原位，无操作
-  } else {
-    // 落空，不操作
+  if (targetRackIndex !== null) {
+    if (dragState.sourceType === 'grill') {
+      tryMoveToPrepRack(dragState.grillId, dragState.slotIdx, targetRackIndex);
+    } else if (targetRackIndex !== dragState.rackIndex) {
+      tryMoveRackToRack(dragState.rackIndex, targetRackIndex);
+    }
+  } else if (targetGrillId !== null) {
+    if (dragState.sourceType === 'grill') {
+      if (targetGrillId !== dragState.grillId) {
+        tryMoveTo(dragState.grillId, dragState.slotIdx, targetGrillId);
+      }
+    } else {
+      tryMoveFromRackToGrill(dragState.rackIndex, targetGrillId);
+    }
   }
 
   dragState = null;
@@ -622,6 +1075,18 @@ function hitTestGrill(x, y) {
   return null;
 }
 
+function hitTestPrepRack(x, y) {
+  const slots = document.querySelectorAll('.prep-slot');
+  for (const el of slots) {
+    const rect = el.getBoundingClientRect();
+    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+      const id = parseInt(el.dataset.rackIndex, 10);
+      if (!isNaN(id)) return id;
+    }
+  }
+  return null;
+}
+
 /**
  * 拖拽移动中：高亮目标烤盘
  */
@@ -630,20 +1095,32 @@ function onDragMove(x, y) {
   moveGhost(x, y);
   clearDragHighlights();
 
+  const targetRackIndex = hitTestPrepRack(x, y);
+  if (targetRackIndex !== null) {
+    const sameRack = dragState.sourceType === 'rack' && targetRackIndex === dragState.rackIndex;
+    if (!sameRack) {
+      const rackEl = document.querySelector(`.prep-slot[data-rack-index="${targetRackIndex}"]`);
+      if (rackEl) rackEl.classList.add(G.prepRack[targetRackIndex] ? 'drag-over-full' : 'drag-over');
+    }
+    return;
+  }
+
   const targetId = hitTestGrill(x, y);
-  if (targetId !== null && targetId !== dragState.grillId) {
-    const targetGrill = G.data.grills[targetId];
+  const sameGrill = dragState.sourceType === 'grill' && targetId === dragState.grillId;
+  if (targetId !== null && !sameGrill) {
+    const targetGrill = getGrill(targetId);
     const isFull = targetGrill.pan.filter(s => s !== null).length >= PAN_CAPACITY;
+    const isBlocked = dragState.sourceType === 'grill' && !canTransferBetweenGrills(dragState.grillId, targetId);
     const panEl  = document.querySelector(`.grill-pan[data-grill-id="${targetId}"]`);
     if (panEl) {
-      panEl.classList.add(isFull ? 'drag-over-full' : 'drag-over');
+      panEl.classList.add(isBlocked ? 'drag-over-blocked' : isFull ? 'drag-over-full' : 'drag-over');
     }
   }
 }
 
 function clearDragHighlights() {
-  document.querySelectorAll('.drag-over, .drag-over-full').forEach(el => {
-    el.classList.remove('drag-over', 'drag-over-full');
+  document.querySelectorAll('.drag-over, .drag-over-full, .drag-over-blocked').forEach(el => {
+    el.classList.remove('drag-over', 'drag-over-full', 'drag-over-blocked');
   });
 }
 
@@ -685,10 +1162,14 @@ window.addEventListener('resize', syncOrdersLayout);
 function tryMoveTo(fromGrillId, fromSlotIdx, toGrillId) {
   if (G.busy || G.over || G.won) return;
 
-  const fromGrill = G.data.grills[fromGrillId];
-  const toGrill   = G.data.grills[toGrillId];
+  const fromGrill = getGrill(fromGrillId);
+  const toGrill   = getGrill(toGrillId);
   const item      = fromGrill.pan[fromSlotIdx];
   if (!item) return;
+  if (!canTransferBetweenGrills(fromGrillId, toGrillId)) {
+    shakeGrill(toGrillId);
+    return;
+  }
 
   // 找到目标烤盘的第一个空槽
   const emptySlot = toGrill.pan.indexOf(null);
@@ -700,6 +1181,7 @@ function tryMoveTo(fromGrillId, fromSlotIdx, toGrillId) {
 
   // 保存撤回快照
   saveSnapshot();
+  G.selectedRailGrillId = null;
 
   // 执行移动
   fromGrill.pan[fromSlotIdx] = null;
@@ -711,6 +1193,65 @@ function tryMoveTo(fromGrillId, fromSlotIdx, toGrillId) {
 
   // 拖拽后：统一处理消除→补充→订单→连锁
   setTimeout(() => resolveBoard(), 60);
+}
+
+function tryMoveToPrepRack(fromGrillId, fromSlotIdx, rackIndex) {
+  if (G.busy || G.over || G.won || !isPrepRackEnabled()) return;
+
+  const fromGrill = getGrill(fromGrillId);
+  const item = fromGrill && fromGrill.pan[fromSlotIdx];
+  if (!item) return;
+
+  if (G.prepRack[rackIndex]) {
+    shakePrepRack(rackIndex);
+    return;
+  }
+
+  saveSnapshot();
+  G.selectedRailGrillId = null;
+  fromGrill.pan[fromSlotIdx] = null;
+  G.prepRack[rackIndex] = item;
+  G.combo = 0;
+  renderAll();
+  setTimeout(() => resolveBoard(), 60);
+}
+
+function tryMoveFromRackToGrill(rackIndex, toGrillId) {
+  if (G.busy || G.over || G.won || !isPrepRackEnabled()) return;
+
+  const item = G.prepRack[rackIndex];
+  const toGrill = getGrill(toGrillId);
+  if (!item || !toGrill) return;
+
+  const emptySlot = toGrill.pan.indexOf(null);
+  if (emptySlot === -1) {
+    shakeGrill(toGrillId);
+    return;
+  }
+
+  saveSnapshot();
+  G.selectedRailGrillId = null;
+  G.prepRack[rackIndex] = null;
+  toGrill.pan[emptySlot] = item;
+  G.combo = 0;
+  renderAll();
+  setTimeout(() => resolveBoard(), 60);
+}
+
+function tryMoveRackToRack(fromIndex, toIndex) {
+  if (G.busy || G.over || G.won || !isPrepRackEnabled() || fromIndex === toIndex) return;
+
+  if (!G.prepRack[fromIndex]) return;
+  if (G.prepRack[toIndex]) {
+    shakePrepRack(toIndex);
+    return;
+  }
+
+  saveSnapshot();
+  G.selectedRailGrillId = null;
+  G.prepRack[toIndex] = G.prepRack[fromIndex];
+  G.prepRack[fromIndex] = null;
+  renderAll();
 }
 
 // ==================== 统一棋盘稳定化 ====================
@@ -755,6 +1296,10 @@ function resolveBoard() {
   const orderDone = tryFulfillOrder();
   if (orderDone) {
     setTimeout(() => resolveBoard(), 300);
+    return;
+  }
+
+  if (maybeEnsureCleanupOrder()) {
     return;
   }
 
@@ -883,6 +1428,7 @@ function checkDeadlock() {
   // 是否还有空位
   const hasEmpty = grills.some(g => g.pan.some(s => s === null));
   if (hasEmpty) return; // 有空位就不是死局
+  if (isPrepRackEnabled() && rackHasEmptySlot()) return;
 
   // 所有碟子也都空了
   const allDishEmpty = grills.every(g => g.dish.length === 0);
@@ -899,6 +1445,9 @@ function checkDeadlock() {
     g.dish.forEach(plate => plate.forEach(it => {
       typeCounts[it.typeId] = (typeCounts[it.typeId] || 0) + 1;
     }));
+  });
+  G.prepRack.forEach(it => {
+    if (it) typeCounts[it.typeId] = (typeCounts[it.typeId] || 0) + 1;
   });
 
   // 只看烤盘上的：如果某种食材在烤盘上有3个，理论上可以通过移动消除
@@ -934,6 +1483,20 @@ function checkDeadlock() {
   }
 
   if (!canProgress) {
+    const allPanItems = collectPanItems();
+    if (allPanItems.length >= PAN_CAPACITY) {
+      const layouts = buildResolvablePanLayouts(allPanItems, grills.length);
+      G.selectedRailGrillId = null;
+      G.removeMode = false;
+      G.combo = 0;
+      grills.forEach((grill, index) => {
+        grill.pan = layouts[index].map(cloneItem);
+      });
+      renderAll();
+      showSystemTip('老板帮你重排了一手');
+      setTimeout(() => resolveBoard(), 80);
+      return;
+    }
     triggerFail('deadlock');
   }
 }
@@ -941,7 +1504,8 @@ function checkDeadlock() {
 function checkWin() {
   const allDishEmpty = G.data.grills.every(g => g.dish.length === 0);
   const allPanEmpty  = G.data.grills.every(g => g.pan.every(s => s === null));
-  return allDishEmpty && allPanEmpty;
+  const rackEmpty = G.prepRack.every(slot => slot === null);
+  return allDishEmpty && allPanEmpty && rackEmpty;
 }
 
 function shakeGrill(grillId) {
@@ -953,14 +1517,33 @@ function shakeGrill(grillId) {
   setTimeout(() => panEl.classList.remove('shake'), 350);
 }
 
+function shakePrepRack(rackIndex) {
+  const slotEl = rackIndex === undefined
+    ? document.getElementById('prep-rack-wrap')
+    : document.querySelector(`.prep-slot[data-rack-index="${rackIndex}"]`);
+  if (!slotEl) return;
+  slotEl.classList.remove('shake');
+  void slotEl.offsetWidth;
+  slotEl.classList.add('shake');
+  setTimeout(() => slotEl.classList.remove('shake'), 350);
+}
+
 // ==================== 道具 ====================
 
 function saveSnapshot() {
   const snap = G.data.grills.map(g => ({
-    pan:  g.pan.map(it => it ? { ...it } : null),
-    dish: g.dish.map(plate => plate.map(it => ({ ...it }))),
+    cellIndex: g.cellIndex,
+    pan:  g.pan.map(cloneItem),
+    dish: g.dish.map(plate => plate.map(cloneItem)),
   }));
-  G.history.push({ snap, cleared: G.cleared, score: G.score });
+  G.history.push({
+    snap,
+    board: [...G.data.board],
+    prepRack: G.prepRack.map(cloneItem),
+    cleared: G.cleared,
+    score: G.score,
+    combo: G.combo,
+  });
   if (G.history.length > 5) G.history.shift();
 }
 
@@ -971,61 +1554,45 @@ const Game = {
 
     if (type === 'undo') {
       if (G.history.length === 0) return;
-      const { snap, cleared, score } = G.history.pop();
+      const { snap, board, prepRack, cleared, score, combo } = G.history.pop();
       G.data.grills.forEach((g, i) => {
+        g.cellIndex = snap[i].cellIndex;
         g.pan  = snap[i].pan;
         g.dish = snap[i].dish;
       });
+      G.data.board = board ? [...board] : G.data.board;
+      G.prepRack = Array.isArray(prepRack) ? prepRack : [];
       G.cleared = cleared;
       G.score   = score;
-      G.combo   = 0;
+      G.combo   = combo || 0;
+      G.selectedRailGrillId = null;
+      G.removeMode = false;
       G.tools.undo--;
       renderAll();
     }
 
     else if (type === 'shuffle') {
       saveSnapshot();
-      // 收集所有烤盘上的食材，重新随机分配
-      const allPanItems = [];
-      G.data.grills.forEach(g => {
-        g.pan.forEach(it => { if (it) allPanItems.push(it); });
-        g.pan = [null, null, null];
-      });
-      const bag = shuffle(allPanItems);
-      let idx = 0;
-      G.data.grills.forEach(g => {
-        for (let s = 0; s < PAN_CAPACITY && idx < bag.length; s++) {
-          g.pan[s] = bag[idx++];
-        }
+      const layouts = buildResolvablePanLayouts(collectPanItems(), G.data.grills.length);
+      G.data.grills.forEach((grill, index) => {
+        grill.pan = layouts[index].map(cloneItem);
       });
       G.tools.shuffle--;
       G.combo = 0;
+      G.selectedRailGrillId = null;
       renderAll();
-      // 重新检测消除
-      setTimeout(() => {
-        let chain = 0;
-        const checkAll = () => {
-          if (chain++ > 20) return;
-          let any = false;
-          G.data.grills.forEach((g, id) => {
-            const items = g.pan.filter(s => s !== null);
-            if (items.length === PAN_CAPACITY && items.every(it => it.typeId === items[0].typeId)) {
-              any = true;
-              eliminateGrill(id, items[0].typeId, g.spicy, checkAll);
-            }
-          });
-        };
-        checkAll();
-      }, 100);
+      showSystemTip('烤盘重新排好了');
+      setTimeout(() => resolveBoard(), 80);
     }
 
     else if (type === 'remove') {
+      G.selectedRailGrillId = null;
       G.removeMode = !G.removeMode;
       renderAll();
     }
 
     else if (type === 'addtime') {
-      G.timerSec  += 60;
+      G.timerSec  += 30;
       G.tools.addtime--;
       addTimeToOrders(15);
       renderTools();
@@ -1046,6 +1613,9 @@ const Game = {
     G.over    = false;
     G.won     = false;
     G.removeMode = false;
+    G.selectedRailGrillId = null;
+    G.prepRack = Array.from({ length: G.data.cfg.prepRackSize || 0 }, () => null);
+    G.lastRefilledSlots = [];
 
     stopTimer();
     stopOrderSystem();
@@ -1076,14 +1646,13 @@ function activateRemovePan(grillId) {
   if (!hasItems) return;
 
   saveSnapshot();
+  G.selectedRailGrillId = null;
   grill.pan   = [null, null, null];
   G.tools.remove--;
   G.removeMode = false;
   renderAll();
 
-  // 从碟子补充
-  refillFromDish(grillId);
-  renderAll();
+  setTimeout(() => resolveBoard(), 60);
 }
 
 // ==================== 计时器 ====================
@@ -1149,7 +1718,7 @@ function triggerWin() {
 
   document.getElementById('win-score').textContent = G.score;
   document.getElementById('win-coins').textContent = '+' + coinReward;
-  document.getElementById('win-stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  document.getElementById('win-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
   document.getElementById('btn-next').style.display = G.level < 50 ? 'block' : 'none';
   showOverlay('ov-win');
 }
@@ -1204,11 +1773,13 @@ function showOrderDoneTip() {
 // ==================== 庆祝粒子 ====================
 
 function spawnConfetti() {
-  const emojis = ['🎉', '🎊', '⭐', '✨', '🌟', '🔥'];
+  const symbols = ['•', '◆', '✦', '+'];
+  const colors = ['#f5b94c', '#ff6856', '#2dd4bf', '#e75a8a'];
   for (let i = 0; i < 18; i++) {
     const el = document.createElement('div');
     el.className = 'conf';
-    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    el.style.color = colors[Math.floor(Math.random() * colors.length)];
     el.style.left   = Math.random() * 100 + 'vw';
     el.style.top    = '-30px';
     el.style.fontSize = (14 + Math.random() * 12) + 'px';
@@ -1256,7 +1827,7 @@ function renderHall() {
     btn.disabled = !isUnlocked;
     btn.setAttribute('aria-label', isUnlocked ? `进入第${lv}关` : `第${lv}关未解锁`);
     btn.innerHTML = `<span class="lv-num">${lv}</span>
-      <span class="lv-star">${isCompleted ? '⭐'.repeat(stars) : isUnlocked ? '▶' : '🔒'}</span>`;
+      <span class="lv-star">${isCompleted ? '★'.repeat(stars) : isUnlocked ? '开' : '锁'}</span>`;
     if (isUnlocked) {
       btn.addEventListener('click',     () => Game.startLevel(lv));
       btn.addEventListener('touchend', e => { e.preventDefault(); Game.startLevel(lv); }, { passive: false });

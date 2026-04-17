@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="mushroom-cap" x1="17" y1="16" x2="45" y2="35" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C78D5C"/>
+      <stop offset="1" stop-color="#8C5B35"/>
+    </linearGradient>
+  </defs>
+  <path d="M13 30c0-11 9-18 19-18s19 7 19 18c-10 3-28 3-38 0z" fill="url(#mushroom-cap)"/>
+  <path d="M25 28h14c0 8-2 17-7 21-5-4-7-13-7-21z" fill="#F0DFC7"/>
+  <path d="M19 29c4-2 9-3 13-3s9 1 13 3" stroke="#7A4728" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+  <path d="M28 34h8M27 40h10" stroke="#C2A98A" stroke-width="3" stroke-linecap="round"/>
+</svg>

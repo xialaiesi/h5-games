@@ -3,7 +3,8 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const { v4: uuidv4 } = require('uuid')
-const { getDB } = require('../db')
+
+const { execute, queryOne } = require('../db')
 const UserModel = require('../models/UserModel')
 
 const JWT_SECRET = () => process.env.JWT_SECRET || 'default_dev_secret_change_in_production'
@@ -11,16 +12,7 @@ const JWT_EXPIRES = '7d'
 const BCRYPT_ROUNDS = 10
 const PHONE_RE = /^1\d{10}$/
 
-/**
- * 认证服务
- * 处理注册、登录、Token 签发/验证、黑名单
- */
 class AuthService {
-  /**
-   * 模拟手机号注册
-   * @param {{ phone, password, nickname }} data
-   * @returns {{ token: string, user: object }}
-   */
   async register({ phone, password, nickname }) {
     const normalizedPhone = this._normalizePhone(phone)
 
@@ -40,24 +32,19 @@ class AuthService {
       throw err
     }
 
-    if (UserModel.findByPhone(normalizedPhone)) {
+    if (await UserModel.findByPhone(normalizedPhone)) {
       const err = new Error('该手机号已被注册')
       err.code = 'PHONE_EXISTS'
       throw err
     }
 
     const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS)
-    const user = UserModel.create({ phone: normalizedPhone, password_hash, nickname })
+    const user = await UserModel.create({ phone: normalizedPhone, password_hash, nickname })
     const token = this._signToken(user)
 
     return { token, user: this._publicUser(user) }
   }
 
-  /**
-   * 手机号登录（兼容旧邮箱账号）
-   * @param {{ phone?, email?, password }} data
-   * @returns {{ token: string, user: object }}
-   */
   async login({ phone, email, password }) {
     const normalizedPhone = this._normalizePhone(phone)
     const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
@@ -69,8 +56,9 @@ class AuthService {
     }
 
     const user = normalizedPhone
-      ? UserModel.findByPhone(normalizedPhone)
-      : UserModel.findByEmail(normalizedEmail)
+      ? await UserModel.findByPhone(normalizedPhone)
+      : await UserModel.findByEmail(normalizedEmail)
+
     if (!user) {
       const err = new Error('手机号或密码错误')
       err.code = 'INVALID_CREDENTIALS'
@@ -88,18 +76,13 @@ class AuthService {
     return { token, user: this._publicUser(user) }
   }
 
-  /**
-   * 通过手机号重置密码（模拟找回，不校验短信）
-   * @param {{ phone, password }} data
-   * @returns {{ token: string, user: object }}
-   */
   async resetPassword({ phone, password }) {
     const normalizedPhone = this._normalizePhone(phone)
 
     this._assertPhone(normalizedPhone)
     this._assertPassword(password)
 
-    const user = UserModel.findByPhone(normalizedPhone)
+    const user = await UserModel.findByPhone(normalizedPhone)
     if (!user) {
       const err = new Error('该手机号还没有注册')
       err.code = 'PHONE_NOT_FOUND'
@@ -107,16 +90,11 @@ class AuthService {
     }
 
     const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS)
-    const updatedUser = UserModel.updatePassword(user.id, password_hash)
+    const updatedUser = await UserModel.updatePassword(user.id, password_hash)
     const token = this._signToken(updatedUser)
     return { token, user: this._publicUser(updatedUser) }
   }
 
-  /**
-   * 已登录用户修改密码
-   * @param {{ userId, currentPassword, newPassword }} data
-   * @returns {{ message: string }}
-   */
   async changePassword({ userId, currentPassword, newPassword }) {
     if (!currentPassword || !newPassword) {
       const err = new Error('请填写当前密码和新密码')
@@ -126,7 +104,7 @@ class AuthService {
 
     this._assertPassword(newPassword)
 
-    const user = UserModel.findById(userId)
+    const user = await UserModel.findById(userId)
     if (!user) {
       const err = new Error('用户不存在')
       err.code = 'USER_NOT_FOUND'
@@ -141,16 +119,11 @@ class AuthService {
     }
 
     const password_hash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS)
-    UserModel.updatePassword(user.id, password_hash)
+    await UserModel.updatePassword(user.id, password_hash)
     return { message: '密码已更新' }
   }
 
-  /**
-   * 刷新 Token（允许旧 token 在过期后 7 天内刷新）
-   * @param {string} oldToken
-   * @returns {{ token: string }}
-   */
-  refresh(oldToken) {
+  async refresh(oldToken) {
     if (!oldToken) {
       const err = new Error('缺少 token')
       err.code = 'MISSING_TOKEN'
@@ -166,47 +139,35 @@ class AuthService {
       throw err
     }
 
-    // 检查黑名单
-    if (this._isBlacklisted(payload.jti)) {
+    if (await this._isBlacklisted(payload.jti)) {
       const err = new Error('token 已失效')
       err.code = 'TOKEN_REVOKED'
       throw err
     }
 
-    const user = UserModel.findById(payload.sub)
+    const user = await UserModel.findById(payload.sub)
     if (!user) {
       const err = new Error('用户不存在')
       err.code = 'USER_NOT_FOUND'
       throw err
     }
 
-    // 将旧 token 加入黑名单
-    this._blacklist(payload.jti, payload.exp)
-
+    await this._blacklist(payload.jti, payload.exp)
     const token = this._signToken(user)
     return { token }
   }
 
-  /**
-   * 登出（将 token jti 加入黑名单）
-   * @param {string} token
-   */
-  logout(token) {
+  async logout(token) {
     if (!token) return
     try {
       const payload = jwt.verify(token, JWT_SECRET(), { ignoreExpiration: true })
-      this._blacklist(payload.jti, payload.exp)
+      await this._blacklist(payload.jti, payload.exp)
     } catch {
       // token 本身无效，忽略
     }
   }
 
-  /**
-   * 验证 token 有效性（中间件和 WebSocket 鉴权使用）
-   * @param {string} token
-   * @returns {{ userId: string, nickname: string, ... }}
-   */
-  verify(token) {
+  async verify(token) {
     if (!token) {
       const err = new Error('缺少 token')
       err.code = 'MISSING_TOKEN'
@@ -224,7 +185,7 @@ class AuthService {
       throw err
     }
 
-    if (this._isBlacklisted(payload.jti)) {
+    if (await this._isBlacklisted(payload.jti)) {
       const err = new Error('token 已失效（已登出）')
       err.code = 'TOKEN_REVOKED'
       err.status = 401
@@ -240,11 +201,6 @@ class AuthService {
     }
   }
 
-  // ===== 私有方法 =====
-
-  /**
-   * 签发 JWT
-   */
   _signToken(user) {
     return jwt.sign(
       {
@@ -259,37 +215,34 @@ class AuthService {
     )
   }
 
-  /**
-   * 将 jti 加入黑名单（写入 DB 持久化）
-   */
-  _blacklist(jti, expUnix) {
+  async _blacklist(jti, expUnix) {
     if (!jti) return
+
     try {
       const expiresAt = expUnix
         ? new Date(expUnix * 1000).toISOString()
         : new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString()
-      getDB().prepare(
-        'INSERT OR IGNORE INTO token_blacklist (jti, expires_at) VALUES (?, ?)'
-      ).run(jti, expiresAt)
+
+      await execute(
+        'INSERT INTO token_blacklist (jti, expires_at) VALUES (?, ?) ON CONFLICT (jti) DO NOTHING',
+        [jti, expiresAt]
+      )
     } catch (err) {
       console.error('[AuthService] 写入黑名单失败:', err.message)
     }
   }
 
-  /**
-   * 检查 jti 是否在黑名单中
-   */
-  _isBlacklisted(jti) {
+  async _isBlacklisted(jti) {
     if (!jti) return false
-    const row = getDB().prepare(
-      "SELECT jti FROM token_blacklist WHERE jti = ? AND expires_at > datetime('now')"
-    ).get(jti)
+
+    const now = new Date().toISOString()
+    const row = await queryOne(
+      'SELECT jti FROM token_blacklist WHERE jti = ? AND expires_at > ?',
+      [jti, now]
+    )
     return !!row
   }
 
-  /**
-   * 返回公开的用户信息（去除敏感字段）
-   */
   _publicUser(user) {
     const { password_hash, ...pub } = user
     return {

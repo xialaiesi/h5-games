@@ -1,16 +1,12 @@
 'use strict'
 
-const { getDB } = require('../db')
+const { queryOne, queryAll, execute } = require('../db')
 
 class BBQProgressModel {
-  /**
-   * 获取用户的烧烤游戏进度
-   * @param {string} userId
-   * @returns {object|null}
-   */
-  findByUserId(userId) {
-    const row = getDB().prepare('SELECT * FROM user_bbq_progress WHERE user_id = ?').get(userId)
+  async findByUserId(userId) {
+    const row = await queryOne('SELECT * FROM user_bbq_progress WHERE user_id = ?', [userId])
     if (!row) return null
+
     return {
       ...row,
       coins: row.coins || 0,
@@ -18,46 +14,28 @@ class BBQProgressModel {
     }
   }
 
-  /**
-   * 创建用户烧烤进度（首次进入游戏时调用）
-   * @param {string} userId
-   * @returns {object}
-   */
-  create(userId) {
-    const db = getDB()
+  async create(userId) {
     const now = new Date().toISOString()
-
-    db.prepare(`
-      INSERT INTO user_bbq_progress (
-        user_id, max_level, total_score, level_stars, coins, last_played, created_at, updated_at
-      )
-      VALUES (?, 1, 0, '{}', 0, ?, ?, ?)
-    `).run(userId, now, now, now)
+    await execute(
+      `INSERT INTO user_bbq_progress (
+         user_id, max_level, total_score, level_stars, coins, last_played, created_at, updated_at
+       )
+       VALUES (?, 1, 0, '{}', 0, ?, ?, ?)`,
+      [userId, now, now, now]
+    )
 
     return this.findByUserId(userId)
   }
 
-  /**
-   * 获取或创建用户烧烤进度
-   * @param {string} userId
-   * @returns {object}
-   */
-  getOrCreate(userId) {
-    let progress = this.findByUserId(userId)
+  async getOrCreate(userId) {
+    let progress = await this.findByUserId(userId)
     if (!progress) {
-      progress = this.create(userId)
+      progress = await this.create(userId)
     }
     return progress
   }
 
-  /**
-   * 更新用户烧烤进度
-   * @param {string} userId
-   * @param {{ max_level?, total_score?, level_stars?, coins?, last_played? }} data
-   * @returns {object|null}
-   */
-  update(userId, { max_level, total_score, level_stars, coins, last_played }) {
-    const db = getDB()
+  async update(userId, { max_level, total_score, level_stars, coins, last_played }) {
     const now = new Date().toISOString()
     const fields = []
     const values = []
@@ -88,20 +66,13 @@ class BBQProgressModel {
     fields.push('updated_at = ?')
     values.push(now, userId)
 
-    db.prepare(`UPDATE user_bbq_progress SET ${fields.join(', ')} WHERE user_id = ?`).run(...values)
+    await execute(`UPDATE user_bbq_progress SET ${fields.join(', ')} WHERE user_id = ?`, values)
     return this.findByUserId(userId)
   }
 
-  /**
-   * 保存关卡通关进度
-   * @param {string} userId
-   * @param {number} level
-   * @param {number} stars
-   * @param {number} score
-   */
-  saveLevelComplete(userId, level, stars, score) {
+  async saveLevelComplete(userId, level, stars, score) {
     const now = new Date().toISOString()
-    const progress = this.getOrCreate(userId)
+    const progress = await this.getOrCreate(userId)
 
     const levelStars = { ...(progress.level_stars || {}) }
     const prevStars = levelStars[level] || 0
@@ -114,7 +85,7 @@ class BBQProgressModel {
     const coinReward = this._calcCoinReward(stars)
     const newCoins = (progress.coins || 0) + coinReward
 
-    this.update(userId, {
+    await this.update(userId, {
       max_level: newMaxLevel,
       total_score: newTotalScore,
       level_stars: levelStars,
@@ -123,30 +94,26 @@ class BBQProgressModel {
     })
 
     return {
-      ...this.findByUserId(userId),
+      ...(await this.findByUserId(userId)),
       coin_reward: coinReward,
     }
   }
 
-  /**
-   * 获取烧烤游戏排行榜（按总分）
-   * @param {number} limit
-   * @returns {object[]}
-   */
-  getLeaderboard(limit = 20) {
-    return getDB().prepare(`
-      SELECT 
-        u.id AS userId,
-        u.nickname,
-        u.avatar,
-        p.max_level,
-        p.total_score
-      FROM user_bbq_progress p
-      JOIN users u ON u.id = p.user_id
-      WHERE u.is_guest = 0
-      ORDER BY p.total_score DESC
-      LIMIT ?
-    `).all(limit)
+  async getLeaderboard(limit = 20) {
+    return queryAll(
+      `SELECT
+         u.id AS "userId",
+         u.nickname,
+         u.avatar,
+         p.max_level,
+         p.total_score
+       FROM user_bbq_progress p
+       JOIN users u ON u.id = p.user_id
+       WHERE u.is_guest = 0
+       ORDER BY p.total_score DESC
+       LIMIT ?`,
+      [limit]
+    )
   }
 
   _calcCoinReward(stars) {

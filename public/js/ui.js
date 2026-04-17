@@ -26,9 +26,9 @@
     const el = document.createElement('div');
     el.className = `toast toast-${type}`;
 
-    const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
+    const icons = { success: 'OK', error: 'NO', warning: '!', info: 'i' };
     el.innerHTML = `
-      <span style="font-weight:700;opacity:0.8">${icons[type] || 'i'}</span>
+      <span class="toast-badge">${icons[type] || 'i'}</span>
       <span>${message}</span>
     `;
 
@@ -159,12 +159,12 @@
   // ===== 工具：渲染段位徽章 =====
   function getRankInfo(rating) {
     const ranks = [
-      { min: 2000, name: '宗师', cls: 'rank-legend' },
-      { min: 1700, name: '大师', cls: 'rank-grandmaster' },
-      { min: 1500, name: '强棋', cls: 'rank-master' },
-      { min: 1300, name: '棋士', cls: 'rank-knight' },
-      { min: 1100, name: '学徒', cls: 'rank-apprentice' },
-      { min: 0,    name: '入门', cls: 'rank-novice' },
+      { min: 2000, name: '招牌店长', cls: 'rank-legend' },
+      { min: 1700, name: '炭火大师', cls: 'rank-grandmaster' },
+      { min: 1500, name: '掌炉高手', cls: 'rank-master' },
+      { min: 1300, name: '夜市红人', cls: 'rank-knight' },
+      { min: 1100, name: '小摊主', cls: 'rank-apprentice' },
+      { min: 0,    name: '试营业', cls: 'rank-novice' },
     ];
     return ranks.find(r => rating >= r.min) || ranks[ranks.length - 1];
   }
@@ -200,8 +200,8 @@
 
   // ===== 工具：随机昵称 =====
   function randomNickname() {
-    const adjs  = ['神速','稳健','灵动','豪迈','沉着','犀利','敏捷','深远'];
-    const nouns = ['棋手','棋士','棋圣','棋王','棋仙','棋客','棋人','棋神'];
+    const adjs  = ['火候','炭香','鲜辣','稳准','秘制','利落','掌火','夜摊'];
+    const nouns = ['摊主','烤手','厨神','串王','炉长','调味师','烧烤家','掌勺'];
     const num   = Math.floor(Math.random() * 900) + 100;
     return adjs[Math.floor(Math.random() * adjs.length)] +
            nouns[Math.floor(Math.random() * nouns.length)] + num;

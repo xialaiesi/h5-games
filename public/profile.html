@@ -2,127 +2,64 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的烧烤摊</title>
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/components.css">
 <link rel="stylesheet" href="/css/layout.css">
-<style>
-  .game-stats-title {
-    font-size: 13px;
-    color: var(--color-text-muted);
-    font-weight: 500;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .game-stats-title::before {
-    content: '';
-    width: 3px;
-    height: 14px;
-    background: var(--color-gold);
-    border-radius: 2px;
-    display: inline-block;
-  }
-
-  .nickname-edit {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .password-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .password-form .form-input {
-    font-size: 14px;
-  }
-
-  .password-form .btn {
-    margin-top: 4px;
-  }
-
-  /* 底部导航 */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(15,15,26,0.95);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid var(--color-border);
-    display: flex;
-    z-index: 50;
-  }
-
-  .bottom-nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 8px 0;
-    font-size: 11px;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    transition: color var(--transition-fast);
-    -webkit-tap-highlight-color: transparent;
-    text-decoration: none;
-  }
-
-  .bottom-nav-item.active { color: var(--color-gold); }
-  .bottom-nav-icon { font-size: 22px; line-height: 1; }
-</style>
 </head>
 <body>
 
-<!-- 顶部导航 -->
 <nav class="navbar">
   <div class="navbar-inner">
-    <a href="/index.html" class="navbar-logo" style="text-decoration:none">烧烤摊</a>
+    <a class="navbar-logo-link" href="/index.html" aria-label="返回首页">
+      <span class="navbar-brand-mark" aria-hidden="true">
+        <img src="/bbq/assets/grill.png" alt="" width="320" height="320">
+      </span>
+      <span class="navbar-logo">烧烤摊<span>ACCOUNT</span></span>
+    </a>
     <div class="navbar-actions">
-      <button class="btn btn-ghost btn-sm" id="btn-logout">退出登录</button>
+      <button class="btn btn-ghost btn-sm" id="btn-logout" type="button">退出</button>
     </div>
   </div>
 </nav>
 
-<!-- 个人信息头部 -->
-<div class="profile-header" id="profile-header">
-  <div class="profile-avatar" id="profile-avatar">&#x1F464;</div>
-  <div class="profile-nickname" id="profile-nickname">
-    <span class="skeleton" style="width:100px;height:20px;display:inline-block"></span>
+<div class="profile-header">
+  <div class="profile-header-media">
+    <img src="/bbq/assets/bg.jpg" alt="夜市烧烤背景" width="800" height="1735" loading="eager">
   </div>
-  <div class="profile-email" id="profile-email"></div>
-  <div id="profile-rank" style="margin-bottom:6px"></div>
-  <div class="profile-since" id="profile-since"></div>
-
-  <!-- 昵称修改 -->
-  <div class="nickname-edit">
-    <input type="text" class="form-input" id="nickname-input" placeholder="修改昵称" maxlength="12" style="font-size:14px;padding:8px 12px">
-    <button class="btn btn-outline btn-sm" id="btn-save-nick">保存</button>
+  <div class="profile-header-content">
+    <div class="profile-avatar" id="profile-avatar">摊</div>
+    <div class="profile-nickname" id="profile-nickname">
+      <span class="skeleton" style="width:110px;height:26px;display:inline-block"></span>
+    </div>
+    <div class="profile-email" id="profile-email"></div>
+    <div class="profile-rank-row" id="profile-rank"></div>
+    <div class="profile-since" id="profile-since"></div>
   </div>
 </div>
 
-<!-- 主内容 -->
-<div class="page">
-  <div class="page-content">
+<main class="page">
+  <div class="page-content profile-page">
+    <section class="home-section">
+      <div class="section-title">账号资料</div>
+      <div class="card profile-panel">
+        <div class="profile-inline-editor">
+          <input type="text" class="form-input" id="nickname-input" placeholder="修改昵称" maxlength="12" autocomplete="nickname">
+          <button class="btn btn-outline btn-sm" id="btn-save-nick" type="button">保存</button>
+        </div>
+      </div>
+    </section>
 
-    <!-- 烧烤摊进度 -->
-    <div class="home-section">
-      <div class="game-stats-title">🔥 烧烤摊档案</div>
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <span id="bbq-level-text" class="text-gold" style="font-size:20px;font-weight:700">第1关</span>
-          <span id="bbq-last-played" style="font-size:12px;color:var(--color-text-muted)">尚未开玩</span>
+    <section class="home-section">
+      <div class="section-title">烧烤档案</div>
+      <div class="card profile-panel">
+        <div class="profile-meta-row">
+          <div>
+            <div class="profile-meta-key">当前进度</div>
+            <div class="profile-meta-value text-gold" id="bbq-level-text">第1关</div>
+          </div>
+          <div class="profile-meta-key" id="bbq-last-played">尚未开烤</div>
         </div>
         <div class="stat-grid">
           <div class="stat-cell">
@@ -135,36 +72,43 @@
           </div>
           <div class="stat-cell">
             <div class="stat-cell-value" id="bbq-stars">0</div>
-            <div class="stat-cell-label">已得星数</div>
+            <div class="stat-cell-label">星数</div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- 密码设置 -->
-    <div class="home-section">
-      <div class="game-stats-title">🔐 密码设置</div>
-      <div class="card">
+    <section class="home-section">
+      <div class="section-title">安全设置</div>
+      <div class="card profile-panel">
         <div class="password-form">
           <input type="password" class="form-input" id="current-password-input" placeholder="当前密码" autocomplete="current-password">
-          <input type="password" class="form-input" id="new-password-input" placeholder="新密码（至少6位）" autocomplete="new-password">
+          <input type="password" class="form-input" id="new-password-input" placeholder="新密码（至少 6 位）" autocomplete="new-password">
           <input type="password" class="form-input" id="confirm-password-input" placeholder="确认新密码" autocomplete="new-password">
-          <button class="btn btn-gold btn-block" id="btn-change-password">更新密码</button>
+          <button class="btn btn-gold btn-block" id="btn-change-password" type="button">更新密码</button>
         </div>
       </div>
-    </div>
-
+    </section>
   </div>
-</div>
+</main>
 
-<!-- 底部导航 -->
-<nav class="bottom-nav">
+<nav class="bottom-nav" aria-label="主导航">
   <a class="bottom-nav-item" href="/index.html">
-    <span class="bottom-nav-icon">&#x1F3E0;</span>
+    <span class="bottom-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M4 11.5L12 5l8 6.5V20H4v-8.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M9 20v-5h6v5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      </svg>
+    </span>
     <span>首页</span>
   </a>
-  <a class="bottom-nav-item active" href="/profile.html">
-    <span class="bottom-nav-icon">&#x1F464;</span>
+  <a class="bottom-nav-item active" href="/profile.html" aria-current="page">
+    <span class="bottom-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M5 20a7 7 0 0114 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
     <span>我的</span>
   </a>
 </nav>
@@ -176,39 +120,39 @@
 (function () {
   'use strict';
 
-  // 未登录跳转
   if (!Auth.requireAuth()) return;
 
   const user = Auth.getUser();
 
-  // ===== 退出登录 =====
   document.getElementById('btn-logout').addEventListener('click', async () => {
     const ok = await UI.confirm({
       title: '退出登录',
-      message: '确认退出登录吗？',
+      message: '确认离开你的摊位吗？',
       confirmText: '退出',
       cancelText: '取消',
       danger: true,
     });
     if (!ok) return;
+
     try { await API.auth.logout(); } catch (_) {}
     Auth.clearAuth();
     location.href = '/login.html';
   });
 
-  // ===== 渲染基础信息 =====
+  function maskPhone(phone) {
+    const raw = String(phone || '');
+    return raw.length === 11 ? `${raw.slice(0, 3)}****${raw.slice(-4)}` : raw;
+  }
+
   function renderBasicInfo(data) {
     const nickname = data.nickname || '未知用户';
     const account = data.phone ? `手机号 ${maskPhone(data.phone)}` : (data.email || '');
     document.getElementById('profile-nickname').textContent = nickname;
-    document.getElementById('profile-email').textContent    = account;
-    document.getElementById('profile-since').textContent   =
+    document.getElementById('profile-email').textContent = account;
+    document.getElementById('profile-since').textContent =
       (data.createdAt || data.created_at) ? '注册于 ' + UI.formatDate(data.createdAt || data.created_at) : '';
     document.getElementById('nickname-input').value = nickname;
-
-    // 头像用昵称首字
-    const char = nickname.charAt(0).toUpperCase();
-    document.getElementById('profile-avatar').textContent = char;
+    document.getElementById('profile-avatar').textContent = nickname.charAt(0).toUpperCase();
   }
 
   function renderBBQ(data) {
@@ -225,25 +169,21 @@
     document.getElementById('bbq-coins').textContent = coins;
     document.getElementById('bbq-stars').textContent = starCount;
     document.getElementById('profile-rank').innerHTML =
-      `<span class="rank-badge" style="font-size:12px">第 ${maxLevel} 关 · 金币 ${coins}</span>`;
+      `<span class="status-chip">第 ${maxLevel} 关 · 金币 ${coins}</span>`;
     document.getElementById('bbq-last-played').textContent = hasPlayed && bbq.lastPlayed
       ? '最近游玩 ' + UI.formatTime(bbq.lastPlayed)
-      : '尚未开玩';
+      : '尚未开烤';
   }
 
-  function maskPhone(phone) {
-    const raw = String(phone || '');
-    return raw.length === 11 ? `${raw.slice(0, 3)}****${raw.slice(-4)}` : raw;
-  }
-
-  // ===== 修改昵称 =====
   document.getElementById('btn-save-nick').addEventListener('click', async () => {
     const nickname = document.getElementById('nickname-input').value.trim();
     if (!nickname || nickname.length < 2) {
-      UI.toast('昵称至少2个字符', 'warning'); return;
+      UI.toast('昵称至少 2 个字符', 'warning');
+      return;
     }
     if (nickname.length > 12) {
-      UI.toast('昵称最多12个字符', 'warning'); return;
+      UI.toast('昵称最多 12 个字符', 'warning');
+      return;
     }
 
     const btn = document.getElementById('btn-save-nick');
@@ -261,20 +201,22 @@
     }
   });
 
-  // ===== 修改密码 =====
   document.getElementById('btn-change-password').addEventListener('click', async () => {
     const currentPassword = document.getElementById('current-password-input').value;
     const newPassword = document.getElementById('new-password-input').value;
     const confirmPassword = document.getElementById('confirm-password-input').value;
 
     if (!currentPassword) {
-      UI.toast('请输入当前密码', 'warning'); return;
+      UI.toast('请输入当前密码', 'warning');
+      return;
     }
     if (!newPassword || newPassword.length < 6) {
-      UI.toast('新密码至少需要 6 位', 'warning'); return;
+      UI.toast('新密码至少需要 6 位', 'warning');
+      return;
     }
     if (newPassword !== confirmPassword) {
-      UI.toast('两次输入的新密码不一致', 'warning'); return;
+      UI.toast('两次输入的新密码不一致', 'warning');
+      return;
     }
 
     const btn = document.getElementById('btn-change-password');
@@ -295,18 +237,18 @@
     }
   });
 
-  // ===== 加载数据 =====
   async function loadProfile() {
     try {
       UI.showLoading('加载中...');
       const meData = await API.users.me();
-
       renderBasicInfo(meData);
       renderBBQ(meData);
     } catch (err) {
       UI.toast('加载失败：' + (err.message || '请重试'), 'error');
-      // 降级：使用本地缓存
-      if (user) renderBasicInfo(user);
+      if (user) {
+        renderBasicInfo(user);
+        renderBBQ(user);
+      }
     } finally {
       UI.hideLoading();
     }

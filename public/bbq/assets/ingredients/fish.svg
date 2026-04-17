@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="fish-body" x1="16" y1="20" x2="50" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8DD8D8"/>
+      <stop offset="1" stop-color="#3E9A9C"/>
+    </linearGradient>
+  </defs>
+  <path d="M12 32c7-10 18-15 30-12l11-7-2 12 2 12-11-7c-12 3-23-2-30-12z" fill="url(#fish-body)"/>
+  <circle cx="23" cy="30" r="2" fill="#183D46"/>
+  <path d="M19 36c6 2 13 2 20 0" stroke="#D9F7F6" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+  <path d="M30 24l7 7-7 7" stroke="#1F6D72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/>
+  <path d="M21 28h18M22 35h16" stroke="#26656B" stroke-width="3" stroke-linecap="round" opacity=".36"/>
+</svg>

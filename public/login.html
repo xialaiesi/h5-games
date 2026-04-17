@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>登录 / 注册 - 疯狂烧烤摊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 / 注册 - 烧烤摊</title>
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/components.css">
 <link rel="stylesheet" href="/css/layout.css">
@@ -12,100 +12,97 @@
 
 <div class="auth-page">
   <div class="auth-box">
-    <!-- Logo -->
-    <div class="auth-logo">
-      <div class="auth-logo-text">烧 烤 摊</div>
-      <div class="auth-logo-subtitle">手机号登录 · 独立存档</div>
+    <div class="auth-visual">
+      <div class="auth-visual-media">
+        <img src="/bbq/assets/bg.jpg" alt="烧烤摊背景" width="800" height="1735" loading="eager">
+      </div>
+      <div class="auth-logo">
+        <div class="auth-kicker">手机号登录</div>
+        <div class="auth-logo-text">烧烤摊</div>
+        <div class="auth-logo-subtitle">独立存档、模拟找回、改完密码就能继续开烤。</div>
+      </div>
     </div>
 
-    <!-- Tab 切换 -->
-    <div class="tab-bar" style="margin-bottom:24px">
-      <div class="tab-item active" id="tab-login" data-tab="login">登录</div>
-      <div class="tab-item" id="tab-register" data-tab="register">注册</div>
-      <div class="tab-item" id="tab-reset" data-tab="reset">找回</div>
+    <div class="tab-bar auth-tabs" role="tablist" aria-label="登录注册切换">
+      <button type="button" class="tab-item active" id="tab-login" data-tab="login" role="tab" aria-selected="true">登录</button>
+      <button type="button" class="tab-item" id="tab-register" data-tab="register" role="tab" aria-selected="false">注册</button>
+      <button type="button" class="tab-item" id="tab-reset" data-tab="reset" role="tab" aria-selected="false">找回</button>
     </div>
 
-    <!-- 登录表单 -->
     <div id="form-login">
       <div class="form-group">
-        <label class="form-label">手机号</label>
+        <label class="form-label" for="login-phone">手机号</label>
         <input type="tel" class="form-input" id="login-phone" placeholder="请输入 11 位手机号" inputmode="numeric" maxlength="11" autocomplete="tel">
-        <div class="form-error" id="login-phone-err"></div>
+        <div class="form-error" id="login-phone-err" aria-live="polite"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">密码</label>
+        <label class="form-label" for="login-password">密码</label>
         <input type="password" class="form-input" id="login-password" placeholder="请输入密码" autocomplete="current-password">
-        <div class="form-error" id="login-password-err"></div>
+        <div class="form-error" id="login-password-err" aria-live="polite"></div>
       </div>
-      <div style="margin:-6px 0 16px;font-size:12px;color:var(--color-text-muted);line-height:1.6">
-        模拟手机号登录，不校验短信验证码，直接使用“手机号 + 密码”进入。
-      </div>
-      <div class="form-group" style="flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-muted);cursor:pointer">
-          <input type="checkbox" id="login-remember" checked style="accent-color:var(--color-gold)">
+      <div class="auth-helper">当前为模拟手机号登录，不校验短信验证码，直接使用“手机号 + 密码”进入。</div>
+      <div class="auth-check-row">
+        <label>
+          <input type="checkbox" id="login-remember" checked>
           记住登录
         </label>
       </div>
-      <div class="form-error" id="login-global-err" style="margin-bottom:12px;text-align:center"></div>
-      <button class="btn btn-gold btn-block btn-lg" id="btn-login">登 录</button>
+      <div class="form-error" id="login-global-err" style="margin-bottom:12px;text-align:center" aria-live="polite"></div>
+      <button class="btn btn-gold btn-block btn-lg" id="btn-login" type="button">登录</button>
       <button class="btn btn-ghost btn-block" id="btn-show-reset" type="button" style="margin-top:10px">忘记密码</button>
     </div>
 
-    <!-- 注册表单 -->
     <div id="form-register" class="hidden">
       <div class="form-group">
-        <label class="form-label">手机号</label>
+        <label class="form-label" for="reg-phone">手机号</label>
         <input type="tel" class="form-input" id="reg-phone" placeholder="请输入 11 位手机号" inputmode="numeric" maxlength="11" autocomplete="tel">
-        <div class="form-error" id="reg-phone-err"></div>
+        <div class="form-error" id="reg-phone-err" aria-live="polite"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">密码 <span class="text-muted text-sm">（至少6位）</span></label>
+        <label class="form-label" for="reg-password">密码 <span class="text-muted text-sm">（至少 6 位）</span></label>
         <input type="password" class="form-input" id="reg-password" placeholder="请输入密码" autocomplete="new-password">
-        <div class="form-error" id="reg-password-err"></div>
+        <div class="form-error" id="reg-password-err" aria-live="polite"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">确认密码</label>
+        <label class="form-label" for="reg-confirm">确认密码</label>
         <input type="password" class="form-input" id="reg-confirm" placeholder="再次输入密码" autocomplete="new-password">
-        <div class="form-error" id="reg-confirm-err"></div>
+        <div class="form-error" id="reg-confirm-err" aria-live="polite"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">昵称 <span class="text-muted text-sm">（2~12字符）</span></label>
-        <div style="display:flex;gap:8px">
-          <input type="text" class="form-input" id="reg-nickname" placeholder="你的昵称" maxlength="12" autocomplete="nickname" style="flex:1">
-          <button class="btn btn-ghost btn-sm" id="btn-random-nick" type="button" style="white-space:nowrap;flex-shrink:0">随机</button>
+        <label class="form-label" for="reg-nickname">昵称 <span class="text-muted text-sm">（2~12 字符）</span></label>
+        <div class="auth-inline">
+          <input type="text" class="form-input" id="reg-nickname" placeholder="你的摊位昵称" maxlength="12" autocomplete="nickname">
+          <button class="btn btn-outline btn-sm" id="btn-random-nick" type="button">随机</button>
         </div>
-        <div class="form-error" id="reg-nickname-err"></div>
+        <div class="form-error" id="reg-nickname-err" aria-live="polite"></div>
       </div>
-      <div class="form-error" id="reg-global-err" style="margin-bottom:12px;text-align:center"></div>
-      <button class="btn btn-gold btn-block btn-lg" id="btn-register">注 册</button>
+      <div class="form-error" id="reg-global-err" style="margin-bottom:12px;text-align:center" aria-live="polite"></div>
+      <button class="btn btn-gold btn-block btn-lg" id="btn-register" type="button">注册</button>
     </div>
 
-    <!-- 找回密码表单 -->
     <div id="form-reset" class="hidden">
       <div class="form-group">
-        <label class="form-label">手机号</label>
+        <label class="form-label" for="reset-phone">手机号</label>
         <input type="tel" class="form-input" id="reset-phone" placeholder="请输入注册手机号" inputmode="numeric" maxlength="11" autocomplete="tel">
-        <div class="form-error" id="reset-phone-err"></div>
+        <div class="form-error" id="reset-phone-err" aria-live="polite"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">新密码 <span class="text-muted text-sm">（至少6位）</span></label>
+        <label class="form-label" for="reset-password">新密码 <span class="text-muted text-sm">（至少 6 位）</span></label>
         <input type="password" class="form-input" id="reset-password" placeholder="请输入新密码" autocomplete="new-password">
-        <div class="form-error" id="reset-password-err"></div>
+        <div class="form-error" id="reset-password-err" aria-live="polite"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">确认新密码</label>
+        <label class="form-label" for="reset-confirm">确认新密码</label>
         <input type="password" class="form-input" id="reset-confirm" placeholder="再次输入新密码" autocomplete="new-password">
-        <div class="form-error" id="reset-confirm-err"></div>
+        <div class="form-error" id="reset-confirm-err" aria-live="polite"></div>
       </div>
-      <div style="margin:-6px 0 16px;font-size:12px;color:var(--color-text-muted);line-height:1.6">
-        当前为模拟找回，填写手机号后可直接重设密码并重新进入。
-      </div>
-      <div class="form-error" id="reset-global-err" style="margin-bottom:12px;text-align:center"></div>
-      <button class="btn btn-gold btn-block btn-lg" id="btn-reset-password">重设并登录</button>
+      <div class="auth-helper">当前为模拟找回，填写手机号后可直接重设密码并重新进入。</div>
+      <div class="form-error" id="reset-global-err" style="margin-bottom:12px;text-align:center" aria-live="polite"></div>
+      <button class="btn btn-gold btn-block btn-lg" id="btn-reset-password" type="button">重设并登录</button>
     </div>
 
-    <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--color-text-muted)">
-      <a href="/index.html" style="color:var(--color-text-muted)">返回首页</a>
+    <div class="auth-footer">
+      <a href="/index.html">返回首页</a>
     </div>
   </div>
 </div>
@@ -117,18 +114,19 @@
 (function () {
   'use strict';
 
-  // 已登录直接跳转
   if (Auth.redirectIfLoggedIn(Auth.getRedirectUrl('/index.html'))) return;
 
-  // 判断初始 tab
   const urlParams = new URLSearchParams(location.search);
   const initialTab = urlParams.get('tab');
   const initTab = ['register', 'reset'].includes(initialTab) ? initialTab : 'login';
 
-  // ===== Tab 切换 =====
   function switchTab(tabName) {
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + tabName).classList.add('active');
+    document.querySelectorAll('.tab-item').forEach(tab => {
+      const active = tab.dataset.tab === tabName;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+
     document.getElementById('form-login').classList.toggle('hidden', tabName !== 'login');
     document.getElementById('form-register').classList.toggle('hidden', tabName !== 'register');
     document.getElementById('form-reset').classList.toggle('hidden', tabName !== 'reset');
@@ -141,7 +139,6 @@
 
   switchTab(initTab);
 
-  // ===== 校验工具 =====
   function asTextMessage(msg, fallback = '') {
     if (typeof msg === 'string') return msg;
     if (msg && typeof msg.message === 'string') return msg.message;
@@ -154,15 +151,16 @@
     if (el) {
       el.textContent = asTextMessage(msg, '');
       const inputId = id.replace('-err', '');
-      const input   = document.getElementById(inputId);
+      const input = document.getElementById(inputId);
       if (input) input.classList.toggle('error', !!asTextMessage(msg, ''));
     }
   }
 
   function clearErrors() {
-    ['login-phone-err','login-password-err','login-global-err',
-     'reg-phone-err','reg-password-err','reg-confirm-err','reg-nickname-err','reg-global-err',
-     'reset-phone-err','reset-password-err','reset-confirm-err','reset-global-err'
+    [
+      'login-phone-err', 'login-password-err', 'login-global-err',
+      'reg-phone-err', 'reg-password-err', 'reg-confirm-err', 'reg-nickname-err', 'reg-global-err',
+      'reset-phone-err', 'reset-password-err', 'reset-confirm-err', 'reset-global-err'
     ].forEach(id => setError(id, ''));
   }
 
@@ -174,7 +172,6 @@
     return /^1\d{10}$/.test(phone);
   }
 
-  // ===== 登录 =====
   document.getElementById('btn-show-reset').addEventListener('click', () => switchTab('reset'));
   document.getElementById('btn-login').addEventListener('click', handleLogin);
   document.getElementById('login-password').addEventListener('keydown', e => {
@@ -183,7 +180,7 @@
 
   async function handleLogin() {
     clearErrors();
-    const phone    = sanitizePhone(document.getElementById('login-phone').value);
+    const phone = sanitizePhone(document.getElementById('login-phone').value);
     const password = document.getElementById('login-password').value;
     const remember = document.getElementById('login-remember').checked;
 
@@ -195,10 +192,12 @@
       setError('login-phone-err', '手机号格式不正确');
       valid = false;
     }
+
     if (!password) {
       setError('login-password-err', '请输入密码');
       valid = false;
     }
+
     if (!valid) return;
 
     const btn = document.getElementById('btn-login');
@@ -213,14 +212,11 @@
       setError('login-global-err', asTextMessage(err, '登录失败，请重试'));
     } finally {
       btn.disabled = false;
-      btn.textContent = '登 录';
+      btn.textContent = '登录';
     }
   }
 
-  // ===== 注册 =====
-  // 默认随机昵称
   document.getElementById('reg-nickname').value = UI.randomNickname();
-
   document.getElementById('btn-random-nick').addEventListener('click', () => {
     document.getElementById('reg-nickname').value = UI.randomNickname();
   });
@@ -232,9 +228,9 @@
 
   async function handleRegister() {
     clearErrors();
-    const phone    = sanitizePhone(document.getElementById('reg-phone').value);
+    const phone = sanitizePhone(document.getElementById('reg-phone').value);
     const password = document.getElementById('reg-password').value;
-    const confirm  = document.getElementById('reg-confirm').value;
+    const confirm = document.getElementById('reg-confirm').value;
     const nickname = document.getElementById('reg-nickname').value.trim();
 
     let valid = true;
@@ -251,7 +247,7 @@
       setError('reg-password-err', '请输入密码');
       valid = false;
     } else if (password.length < 6) {
-      setError('reg-password-err', '密码至少需要6位');
+      setError('reg-password-err', '密码至少需要 6 位');
       valid = false;
     }
 
@@ -267,10 +263,10 @@
       setError('reg-nickname-err', '请输入昵称');
       valid = false;
     } else if (nickname.length < 2) {
-      setError('reg-nickname-err', '昵称至少2个字符');
+      setError('reg-nickname-err', '昵称至少 2 个字符');
       valid = false;
     } else if (nickname.length > 12) {
-      setError('reg-nickname-err', '昵称最多12个字符');
+      setError('reg-nickname-err', '昵称最多 12 个字符');
       valid = false;
     }
 
@@ -283,19 +279,18 @@
     try {
       const res = await API.auth.register({ phone, password, nickname });
       Auth.setAuth(res.token, res.user, true);
-      UI.toast('注册成功，开张营业！', 'success');
+      UI.toast('注册成功，马上开烤', 'success');
       setTimeout(() => {
         location.href = Auth.getRedirectUrl('/index.html');
-      }, 800);
+      }, 700);
     } catch (err) {
       setError('reg-global-err', asTextMessage(err, '注册失败，请重试'));
     } finally {
       btn.disabled = false;
-      btn.textContent = '注 册';
+      btn.textContent = '注册';
     }
   }
 
-  // ===== 找回密码 =====
   document.getElementById('btn-reset-password').addEventListener('click', handleResetPassword);
   document.getElementById('reset-confirm').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleResetPassword();
@@ -320,7 +315,7 @@
       setError('reset-password-err', '请输入新密码');
       valid = false;
     } else if (password.length < 6) {
-      setError('reset-password-err', '密码至少需要6位');
+      setError('reset-password-err', '新密码至少需要 6 位');
       valid = false;
     }
 
@@ -328,7 +323,7 @@
       setError('reset-confirm-err', '请再次输入新密码');
       valid = false;
     } else if (confirm !== password) {
-      setError('reset-confirm-err', '两次密码不一致');
+      setError('reset-confirm-err', '两次输入的新密码不一致');
       valid = false;
     }
 
@@ -344,7 +339,7 @@
       UI.toast('密码已重设，已为你登录', 'success');
       setTimeout(() => {
         location.href = Auth.getRedirectUrl('/index.html');
-      }, 600);
+      }, 700);
     } catch (err) {
       setError('reset-global-err', asTextMessage(err, '重设失败，请重试'));
     } finally {

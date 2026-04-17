@@ -114,6 +114,23 @@
       save: (level, stars, score) => request('POST', '/bbq/save', { level, stars, score }),
       getLeaderboard: (limit = 20) => request('GET', `/bbq/leaderboard?limit=${limit}`),
     },
+
+    // ===== Shop 接口 =====
+    shop: {
+      getState: () => request('GET', '/shop/state'),
+      purchase: (itemKey, quantity = 1) => request('POST', '/shop/purchase', { itemKey, quantity }),
+    },
+
+    // ===== Friends 接口 =====
+    friends: {
+      getState: () => request('GET', '/friends'),
+      sendRequest: (targetUserId) => request('POST', '/friends/requests', { targetUserId }),
+      acceptRequest: (requestId) => request('POST', `/friends/requests/${requestId}/accept`, {}),
+      rejectRequest: (requestId) => request('POST', `/friends/requests/${requestId}/reject`, {}),
+      cancelRequest: (requestId) => request('POST', `/friends/requests/${requestId}/cancel`, {}),
+      remove: (friendUserId) => request('POST', `/friends/${friendUserId}/remove`, {}),
+    },
+
     // ===== Rooms 接口 =====
     rooms: {
       getById: (id) => request('GET', `/rooms/${id}`),

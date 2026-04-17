@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="squid-body" x1="24" y1="12" x2="40" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD7A5"/>
+      <stop offset="1" stop-color="#F09363"/>
+    </linearGradient>
+  </defs>
+  <path d="M32 12c8 4 13 14 13 23 0 10-5 18-13 22-8-4-13-12-13-22 0-9 5-19 13-23z" fill="url(#squid-body)"/>
+  <path d="M25 45c-4 5-8 8-11 8M30 47c-2 5-4 8-4 10M34 47c2 5 4 8 4 10M39 45c4 5 8 8 11 8" stroke="#D77243" stroke-width="3" stroke-linecap="round"/>
+  <path d="M27 22c2-2 5-3 5-3s3 1 5 3" stroke="#FFEAD1" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+  <path d="M25 31h14M25 38h14" stroke="#B85D34" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+</svg>
